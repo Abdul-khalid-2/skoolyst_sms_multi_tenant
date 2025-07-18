@@ -14,7 +14,6 @@ return [
     */
 
     'name' => env('APP_NAME', 'Laravel'),
-    'domain' => env('DOMAIN_NAME', 'localhost'),
 
     /*
     |--------------------------------------------------------------------------
@@ -66,7 +65,7 @@ return [
     |
     */
 
-    'timezone' => 'Asia/Karachi',
+    'timezone' => 'UTC',
 
     /*
     |--------------------------------------------------------------------------
@@ -102,7 +101,7 @@ return [
 
     'previous_keys' => [
         ...array_filter(
-            explode(',', env('APP_PREVIOUS_KEYS', ''))
+            explode(',', (string) env('APP_PREVIOUS_KEYS', ''))
         ),
     ],
 
