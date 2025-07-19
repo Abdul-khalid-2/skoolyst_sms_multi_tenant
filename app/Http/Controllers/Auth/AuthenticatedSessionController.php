@@ -20,16 +20,66 @@ class AuthenticatedSessionController extends Controller
     }
 
     /**
-     * Handle an incoming authentication request.
+     * Handle an incoming authentication request for serverless PostgreSQL.
      */
     public function store(LoginRequest $request): RedirectResponse
     {
-        $request->authenticate();
-        dd($request->authenticate());
+        // Manually validate credentials against serverless PostgreSQL
+        $user = $this->validateCredentials($request);
 
+        // Log the user in
+        auth()->login($user, $request->remember);
+
+        // Regenerate session
         $request->session()->regenerate();
 
+        // Log the login event
+        $this->logLoginEvent($user->id, $request->ip());
+
         return redirect()->intended(route('dashboard', absolute: false));
+    }
+
+    /**
+     * Validate user credentials against serverless PostgreSQL.
+     */
+    protected function validateCredentials(LoginRequest $request)
+    {
+        // Get connection to serverless PostgreSQL
+        $connection = DB::connection('serverless-pgsql');
+
+        // Find user by email
+        $user = $connection->table('users')
+            ->where('email', $request->email)
+            ->first();
+
+        if (!$user || !Hash::check($request->password, $user->password)) {
+            throw ValidationException::withMessages([
+                'email' => __('auth.failed'),
+            ]);
+        }
+
+        // Check if user is active
+        if (isset($user->is_active) && !$user->is_active) {
+            throw ValidationException::withMessages([
+                'email' => __('auth.inactive'),
+            ]);
+        }
+
+        return $user;
+    }
+
+    /**
+     * Log login event in serverless PostgreSQL.
+     */
+    protected function logLoginEvent($userId, $ipAddress): void
+    {
+        DB::connection('serverless-pgsql')
+            ->table('user_login_logs')
+            ->insert([
+                'user_id' => $userId,
+                'ip_address' => $ipAddress,
+                'login_at' => now(),
+            ]);
     }
 
     /**
