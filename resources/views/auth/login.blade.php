@@ -1,3 +1,6 @@
+@extends('guest-layout')
+
+@section('content')
 <div class="min-h-screen flex flex-col sm:justify-center items-center pt-6 sm:pt-0 bg-gray-50 dark:bg-gray-900">
     <!-- Session Status -->
     @if (session('status'))
@@ -54,3 +57,4 @@
         </form>
     </div>
 </div>
+@endsection
