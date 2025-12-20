@@ -68,4 +68,37 @@ class User extends Authenticatable
     {
         return $query->where('status', 'active');
     }
+
+    // Add to your User model
+    public function getActiveModules()
+    {
+        if ($this->isSuperAdmin()) {
+            // Super admin sees all modules
+            return Module::where('is_active', true)->orderBy('order')->get();
+        }
+
+        // Regular users see school-specific active modules
+        return Module::where('is_active', true)
+            ->whereHas('schoolModules', function ($query) {
+                $query->where('school_id', $this->school_id)
+                    ->where('is_active', true);
+            })
+            ->orderBy('order')
+            ->get();
+    }
+
+    public function hasModuleAccess($moduleCode)
+    {
+        if ($this->isSuperAdmin()) {
+            return true;
+        }
+
+        return Module::where('code', $moduleCode)
+            ->where('is_active', true)
+            ->whereHas('schoolModules', function ($query) {
+                $query->where('school_id', $this->school_id)
+                    ->where('is_active', true);
+            })
+            ->exists();
+    }
 }
