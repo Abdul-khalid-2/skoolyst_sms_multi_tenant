@@ -105,7 +105,7 @@
                                         </a>
                                         
                                         <!-- Settings -->
-                                         <a href="{{ route('schools.settings', $school->id) }}" 
+                                         <a href="{{ route('schools.settings.show', $school->id) }}" 
                                            class="btn btn-sm btn-secondary mr-2" 
                                            data-toggle="tooltip" title="Settings">
                                             <i class="las la-cog"></i>

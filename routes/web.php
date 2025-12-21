@@ -112,7 +112,7 @@ Route::middleware(['auth'])->group(function () {
     })->name('schools.index');
 
     Route::get('/schools/create', function () {
-        return view('modules.schools.create');
+        return view('dashboard.schools.create');
     })->name('schools.create');
 
     Route::get('/schools/{id}', function ($id) {
@@ -184,8 +184,8 @@ Route::middleware(['auth'])->group(function () {
             'secondary_color' => '#6c757d',
         ];
 
-        return view('modules.schools.settings', compact('school', 'settings'));
-    })->name('schools.settings');
+        return view('dashboard.schools.settings', compact('school', 'settings'));
+    })->name('schools.settings.show');
 
     Route::get('/schools/{id}/activation', function ($id) {
         // Dummy school data for activation page
@@ -205,7 +205,7 @@ Route::middleware(['auth'])->group(function () {
             'updated_at' => now()->subDays(5),
         ];
 
-        return view('modules.schools.activation', compact('school'));
+        return view('dashboard.schools.activation', compact('school'));
     })->name('schools.activation');
 
     // Dummy POST routes for form submissions (for testing)
@@ -242,13 +242,13 @@ Route::middleware(['auth'])->group(function () {
     //     return view('dashboard');
     // })->name('schools.index');
 
-    Route::get('/schools/settings', function () {
-        return view('modules.schools.settings');
-    })->name('schools.settings');
+    // Route::get('/schools/settings', function () {
+    //     return view('modules.schools.settings');
+    // })->name('schools.settings');
 
-    Route::get('/schools/activation', function () {
-        return view('modules.schools.activation');
-    })->name('schools.activation');
+    // Route::get('/schools/activation', function () {
+    //     return view('modules.schools.activation');
+    // })->name('schools.activation');
 
 
 
