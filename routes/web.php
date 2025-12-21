@@ -345,15 +345,11 @@ Route::middleware(['auth'])->group(function () {
 
 
 
+    // ============================================
+    // STUDENT MANAGEMENT MODULE ROUTES (STATIC)
+    // ============================================
 
-
-
-
-
-
-
-
-    // Student Management Module Routes
+    // Students
     Route::get('/students', function () {
         return view('dashboard.students.index');
     })->name('students.index');
@@ -362,18 +358,87 @@ Route::middleware(['auth'])->group(function () {
         return view('dashboard.students.create');
     })->name('students.create');
 
-    Route::get('/guardians', function () {
-        return view('dashboard.students.guardians');
-    })->name('guardians.index');
+    Route::get('/students/{id}', function ($id) {
+        return view('dashboard.students.show');
+    })->name('students.show');
 
-    Route::get('/documents', function () {
-        return view('dashboard.students.documents');
-    })->name('documents.index');
+    Route::get('/students/{id}/edit', function ($id) {
+        return view('dashboard.students.edit');
+    })->name('students.edit');
 
-    // Teacher Management Module Routes
+    // Dummy form submission routes
+    Route::post('/students', function () {
+        return redirect()->route('students.index')
+            ->with('success', 'Student registered successfully!');
+    })->name('students.store');
+
+    Route::put('/students/{id}', function ($id) {
+        return redirect()->route('students.show', $id)
+            ->with('success', 'Student updated successfully!');
+    })->name('students.update');
+
+
+
+
+
+
+
+
+
+    // ============================================
+    // TEACHER MANAGEMENT MODULE ROUTES (STATIC)
+    // ============================================
+
+    // Teachers
     Route::get('/teachers', function () {
         return view('dashboard.teachers.index');
     })->name('teachers.index');
+
+    Route::get('/teachers/create', function () {
+        return view('dashboard.teachers.create');
+    })->name('teachers.create');
+
+    Route::post('/teachers', function () {
+        return redirect()->route('teachers.index')
+            ->with('success', 'Teacher registered successfully!');
+    })->name('teachers.store');
+
+    Route::get('/teachers/{id}', function ($id) {
+        return view('dashboard.teachers.show');
+    })->name('teachers.show');
+
+    Route::get('/teachers/{id}/edit', function ($id) {
+        return view('dashboard.teachers.edit');
+    })->name('teachers.edit');
+
+    Route::put('/teachers/{id}', function ($id) {
+        return redirect()->route('teachers.show', $id)
+            ->with('success', 'Teacher information updated successfully!');
+    })->name('teachers.update');
+
+    Route::delete('/teachers/{id}', function ($id) {
+        return redirect()->route('teachers.index')
+            ->with('success', 'Teacher deleted successfully!');
+    })->name('teachers.destroy');
+
+    // Teacher Subject Assignment
+    Route::get('/teachers/subjects/assignment', function () {
+        return view('dashboard.teachers.subjects');
+    })->name('teachers.subjects');
+
+    Route::post('/teachers/subjects/assign', function () {
+        return redirect()->route('teachers.subjects')
+            ->with('success', 'Subject assigned successfully!');
+    })->name('teachers.assign-subject');
+
+    Route::post('/teachers/class-teacher/assign', function () {
+        return redirect()->route('teachers.subjects')
+            ->with('success', 'Class teacher assigned successfully!');
+    })->name('teachers.assign-class-teacher');
+
+
+
+
 
     Route::get('/teacher-subjects', function () {
         return view('dashboard.teachers.subjects');
