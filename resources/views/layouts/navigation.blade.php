@@ -220,11 +220,11 @@
                                             {{-- <h5 class="mb-1">JoanDuo@property.com</h5>
                                             <p class="mb-0">{{ __('messages.since_date', ['date' => '10 March, 2020']) }}</p> --}}
                                             <div class="d-flex align-items-center justify-content-center mt-3">
-                                                {{-- <a href="../app/user-profile.html" class="btn border mr-2">{{ __('messages.profile') }}</a> --}}
+                                                <a href="{{ route('profiles.index') }}" class="btn border mr-2">{{ __('Profile') }}</a>
 
                                                 <form method="POST" action="{{ route('logout') }}">
                                                     @csrf
-                                                    <button type="submit" class="btn border">{{ __('messages.sign_out') }}</button>
+                                                    <button type="submit" class="btn border">{{ __('Sign Out') }}</button>
                                                 </form>
                                             </div>
                                         </div>

@@ -238,26 +238,6 @@ Route::middleware(['auth'])->group(function () {
 
 
 
-    // Route::get('/schools', function () {
-    //     return view('dashboard');
-    // })->name('schools.index');
-
-    // Route::get('/schools/settings', function () {
-    //     return view('modules.schools.settings');
-    // })->name('schools.settings');
-
-    // Route::get('/schools/activation', function () {
-    //     return view('modules.schools.activation');
-    // })->name('schools.activation');
-
-
-
-
-
-
-
-
-
 
 
 
@@ -266,105 +246,184 @@ Route::middleware(['auth'])->group(function () {
 
     // User Management Module Routes
     Route::get('/roles', function () {
-        return view('modules.users.roles');
+        return view('dashboard.users.roles');
     })->name('roles.index');
 
-    Route::get('/users', function () {
-        return view('modules.users.index');
-    })->name('users.index');
-
     Route::get('/profiles', function () {
-        return view('modules.users.profiles');
+        return view('dashboard.users.profiles');
     })->name('profiles.index');
 
-    // Academic Structure Module Routes
+    Route::get('/roles/create', function () {
+        return view('dashboard.users.roles-create');
+    })->name('roles.create');
+
+    Route::get('/users', function () {
+        return view('dashboard.users.index');
+    })->name('users.index');
+
+    Route::get('/users/create', function () {
+        return view('dashboard.users.create');
+    })->name('users.create');
+
+    Route::get('/users/{id}', function ($id) {
+        return view('dashboard.users.show');
+    })->name('users.show');
+
+    Route::get('/users/{id}/edit', function ($id) {
+        return view('dashboard.users.edit');
+    })->name('users.edit');
+
+
+
+
+
+
+
+
+
+    // Academic Years
     Route::get('/academic-years', function () {
-        return view('modules.academic.years');
+        return view('dashboard.academic.academic-years.index');
     })->name('academic-years.index');
 
+    Route::get('/academic-years/create', function () {
+        return view('dashboard.academic.academic-years.create');
+    })->name('academic-years.create');
+
+    // Classes
     Route::get('/classes', function () {
-        return view('modules.academic.classes');
+        return view('dashboard.academic.classes.index');
     })->name('classes.index');
 
+    Route::get('/classes/create', function () {
+        return view('dashboard.academic.classes.create');
+    })->name('classes.create');
+
+    // Sections
     Route::get('/sections', function () {
-        return view('modules.academic.sections');
+        return view('dashboard.academic.sections.index');
     })->name('sections.index');
 
+    Route::get('/sections/create', function () {
+        return view('dashboard.academic.sections.create');
+    })->name('sections.create');
+
+    // Subjects
     Route::get('/subjects', function () {
-        return view('modules.academic.subjects');
+        return view('dashboard.academic.subjects.index');
     })->name('subjects.index');
+
+    Route::get('/subjects/create', function () {
+        return view('dashboard.academic.subjects.create');
+    })->name('subjects.create');
+
+    // Add dummy form submission routes for testing
+    Route::post('/academic-years', function () {
+        return redirect()->route('academic-years.index')
+            ->with('success', 'Academic year created successfully!');
+    })->name('academic-years.store');
+
+
+    Route::post('/classes', function () {
+        return redirect()->route('classes.index')
+            ->with('success', 'Class created successfully!');
+    })->name('classes.store');
+
+    Route::post('/sections', function () {
+        return redirect()->route('sections.index')
+            ->with('success', 'Section created successfully!');
+    })->name('sections.store');
+
+    Route::post('/subjects', function () {
+        return redirect()->route('subjects.index')
+            ->with('success', 'Subject created successfully!');
+    })->name('subjects.store');
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
     // Student Management Module Routes
     Route::get('/students', function () {
-        return view('modules.students.index');
+        return view('dashboard.students.index');
     })->name('students.index');
 
     Route::get('/students/create', function () {
-        return view('modules.students.create');
+        return view('dashboard.students.create');
     })->name('students.create');
 
     Route::get('/guardians', function () {
-        return view('modules.students.guardians');
+        return view('dashboard.students.guardians');
     })->name('guardians.index');
 
     Route::get('/documents', function () {
-        return view('modules.students.documents');
+        return view('dashboard.students.documents');
     })->name('documents.index');
 
     // Teacher Management Module Routes
     Route::get('/teachers', function () {
-        return view('modules.teachers.index');
+        return view('dashboard.teachers.index');
     })->name('teachers.index');
 
     Route::get('/teacher-subjects', function () {
-        return view('modules.teachers.subjects');
+        return view('dashboard.teachers.subjects');
     })->name('teacher-subjects.index');
 
     Route::get('/class-teachers', function () {
-        return view('modules.teachers.class-assignments');
+        return view('dashboard.teachers.class-assignments');
     })->name('class-teachers.index');
 
     // Attendance System Module Routes
     Route::get('/attendance', function () {
-        return view('modules.attendance.index');
+        return view('dashboard.attendance.index');
     })->name('attendance.index');
 
     Route::get('/attendance/daily', function () {
-        return view('modules.attendance.daily');
+        return view('dashboard.attendance.daily');
     })->name('attendance.daily');
 
     Route::get('/attendance/reports', function () {
-        return view('modules.attendance.reports');
+        return view('dashboard.attendance.reports');
     })->name('attendance.reports');
 
     Route::get('/attendance/alerts', function () {
-        return view('modules.attendance.alerts');
+        return view('dashboard.attendance.alerts');
     })->name('attendance.alerts');
 
     // Fees Management Module Routes
     Route::get('/fees', function () {
-        return view('modules.fees.index');
+        return view('dashboard.fees.index');
     })->name('fees.index');
 
     Route::get('/fee-types', function () {
-        return view('modules.fees.types');
+        return view('dashboard.fees.types');
     })->name('fee-types.index');
 
     Route::get('/invoices/create', function () {
-        return view('modules.fees.create-invoice');
+        return view('dashboard.fees.create-invoice');
     })->name('invoices.create');
 
     Route::get('/payments', function () {
-        return view('modules.fees.payments');
+        return view('dashboard.fees.payments');
     })->name('payments.index');
 
     Route::get('/alerts/due', function () {
-        return view('modules.fees.due-alerts');
+        return view('dashboard.fees.due-alerts');
     })->name('alerts.due');
 
 
     Route::get('/exams', function () {
-        return view('modules.school.settings');
+        return view('dashboard.school.settings');
     })->name('school.settings');
 });
 
