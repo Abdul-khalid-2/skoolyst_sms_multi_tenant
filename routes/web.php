@@ -22,9 +22,225 @@ Route::middleware('auth')->group(function () {
 // Module View Routes - Return simple views without controllers
 Route::middleware(['auth'])->group(function () {
     // School Management Module Routes
+    // School Management Module Routes
     Route::get('/schools', function () {
-        return view('modules.schools.index');
+        // Dummy schools data
+        $schools = [
+            [
+                'id' => 1,
+                'name' => 'ABC International School',
+                'email' => 'info@abc.edu.pk',
+                'phone' => '+92 300 1234567',
+                'address' => '123 Main Street, Karachi',
+                'logo' => 'schools/logos/abc-logo.jpg',
+                'status' => 'active',
+                'branches_count' => 3,
+                'users_count' => 45,
+                'active_users_count' => 42,
+                'inactive_users_count' => 3,
+                'created_at' => now()->subDays(30),
+                'updated_at' => now()->subDays(5),
+            ],
+            [
+                'id' => 2,
+                'name' => 'City Grammar School',
+                'email' => 'contact@citygrammar.edu.pk',
+                'phone' => '+92 300 7654321',
+                'address' => '456 College Road, Lahore',
+                'logo' => null,
+                'status' => 'active',
+                'branches_count' => 2,
+                'users_count' => 28,
+                'active_users_count' => 25,
+                'inactive_users_count' => 3,
+                'created_at' => now()->subDays(45),
+                'updated_at' => now()->subDays(10),
+            ],
+            [
+                'id' => 3,
+                'name' => 'Global Academy',
+                'email' => 'admin@globalacademy.edu.pk',
+                'phone' => '+92 300 9876543',
+                'address' => '789 University Avenue, Islamabad',
+                'logo' => 'schools/logos/global-logo.png',
+                'status' => 'inactive',
+                'branches_count' => 1,
+                'users_count' => 15,
+                'active_users_count' => 0,
+                'inactive_users_count' => 15,
+                'created_at' => now()->subDays(60),
+                'updated_at' => now()->subDays(2),
+            ],
+            [
+                'id' => 4,
+                'name' => 'Bright Future School',
+                'email' => 'info@brightfuture.edu.pk',
+                'phone' => '+92 300 4567890',
+                'address' => '321 Education Road, Rawalpindi',
+                'logo' => null,
+                'status' => 'active',
+                'branches_count' => 1,
+                'users_count' => 32,
+                'active_users_count' => 30,
+                'inactive_users_count' => 2,
+                'created_at' => now()->subDays(20),
+                'updated_at' => now()->subDays(1),
+            ],
+            [
+                'id' => 5,
+                'name' => 'Excel High School',
+                'email' => 'principal@excelhigh.edu.pk',
+                'phone' => '+92 300 2345678',
+                'address' => '654 Knowledge Street, Faisalabad',
+                'logo' => 'schools/logos/excel-logo.jpg',
+                'status' => 'active',
+                'branches_count' => 4,
+                'users_count' => 56,
+                'active_users_count' => 54,
+                'inactive_users_count' => 2,
+                'created_at' => now()->subDays(90),
+                'updated_at' => now()->subDays(7),
+            ],
+        ];
+
+        // Convert arrays to objects for easier access in blade
+        $schools = array_map(function ($school) {
+            return (object) $school;
+        }, $schools);
+
+        return view('dashboard.schools.index', compact('schools'));
     })->name('schools.index');
+
+    Route::get('/schools/create', function () {
+        return view('modules.schools.create');
+    })->name('schools.create');
+
+    Route::get('/schools/{id}', function ($id) {
+        // Dummy school data
+        $school = (object) [
+            'id' => $id,
+            'name' => 'ABC International School',
+            'email' => 'info@abc.edu.pk',
+            'phone' => '+92 300 1234567',
+            'address' => '123 Main Street, Karachi, Pakistan',
+            'logo' => 'schools/logos/abc-logo.jpg',
+            'status' => 'active',
+            'branches_count' => 3,
+            'users_count' => 45,
+            'active_users_count' => 42,
+            'inactive_users_count' => 3,
+            'created_at' => now()->subDays(30),
+            'updated_at' => now()->subDays(5),
+        ];
+
+        return view('dashboard.schools.show', compact('school'));
+    })->name('schools.show');
+
+    Route::get('/schools/{id}/edit', function ($id) {
+        // Dummy school data for edit form
+        $school = (object) [
+            'id' => $id,
+            'name' => 'ABC International School',
+            'email' => 'info@abc.edu.pk',
+            'phone' => '+92 300 1234567',
+            'address' => '123 Main Street, Karachi',
+            'logo' => 'schools/logos/abc-logo.jpg',
+            'status' => 'active',
+            'branches_count' => 3,
+            'users_count' => 45,
+            'created_at' => now()->subDays(30),
+            'updated_at' => now()->subDays(5),
+        ];
+
+        return view('dashboard.schools.edit', compact('school'));
+    })->name('schools.edit');
+
+    Route::get('/schools/{id}/settings', function ($id) {
+        // Dummy school data
+        $school = (object) [
+            'id' => $id,
+            'name' => 'ABC International School',
+            'email' => 'info@abc.edu.pk',
+            'phone' => '+92 300 1234567',
+            'address' => '123 Main Street, Karachi',
+            'logo' => 'schools/logos/abc-logo.jpg',
+            'status' => 'active',
+            'branches_count' => 3,
+            'users_count' => 45,
+            'created_at' => now()->subDays(30),
+            'updated_at' => now()->subDays(5),
+        ];
+
+        // Dummy settings data
+        $settings = [
+            'current_academic_year' => '2024-2025',
+            'default_class' => '1st',
+            'timezone' => 'Asia/Karachi',
+            'currency' => 'PKR',
+            'fee_due_days' => '10',
+            'late_fee_amount' => '500',
+            'enable_partial_payment' => true,
+            'primary_color' => '#007bff',
+            'secondary_color' => '#6c757d',
+        ];
+
+        return view('modules.schools.settings', compact('school', 'settings'));
+    })->name('schools.settings');
+
+    Route::get('/schools/{id}/activation', function ($id) {
+        // Dummy school data for activation page
+        $school = (object) [
+            'id' => $id,
+            'name' => 'ABC International School',
+            'email' => 'info@abc.edu.pk',
+            'phone' => '+92 300 1234567',
+            'address' => '123 Main Street, Karachi',
+            'logo' => 'schools/logos/abc-logo.jpg',
+            'status' => 'active',
+            'branches_count' => 3,
+            'users_count' => 45,
+            'active_users_count' => 42,
+            'inactive_users_count' => 3,
+            'created_at' => now()->subDays(30),
+            'updated_at' => now()->subDays(5),
+        ];
+
+        return view('modules.schools.activation', compact('school'));
+    })->name('schools.activation');
+
+    // Dummy POST routes for form submissions (for testing)
+    Route::post('/schools', function () {
+        return redirect()->route('schools.index')
+            ->with('success', 'School created successfully!');
+    })->name('schools.store');
+
+    Route::put('/schools/{id}', function ($id) {
+        return redirect()->route('schools.index')
+            ->with('success', 'School updated successfully!');
+    })->name('schools.update');
+
+    Route::delete('/schools/{id}', function ($id) {
+        return redirect()->route('schools.index')
+            ->with('success', 'School deleted successfully!');
+    })->name('schools.destroy');
+
+    Route::put('/schools/{id}/settings', function ($id) {
+        return redirect()->route('schools.settings', $id)
+            ->with('success', 'Settings updated successfully!');
+    })->name('schools.settings.update');
+
+    Route::put('/schools/{id}/activation', function ($id) {
+        $status = request('status') == 'active' ? 'activated' : 'deactivated';
+        return redirect()->route('schools.activation', $id)
+            ->with('success', "School {$status} successfully!");
+    })->name('schools.activation.update');
+
+
+
+
+    // Route::get('/schools', function () {
+    //     return view('dashboard');
+    // })->name('schools.index');
 
     Route::get('/schools/settings', function () {
         return view('modules.schools.settings');
@@ -33,6 +249,20 @@ Route::middleware(['auth'])->group(function () {
     Route::get('/schools/activation', function () {
         return view('modules.schools.activation');
     })->name('schools.activation');
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
     // User Management Module Routes
     Route::get('/roles', function () {
