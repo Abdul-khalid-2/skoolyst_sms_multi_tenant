@@ -92,14 +92,13 @@ class ModuleSeeder extends Seeder
                     'delete_students'
                 ],
                 'submodules' => [
-                    ['name' => 'Student Registration', 'route' => 'students.create'],
                     ['name' => 'Students', 'route' => 'students.index'],
                 ],
             ],
             [
                 'code' => 'teacher_management',
                 'name' => 'Teacher Management',
-                'description' => 'Teacher profiles, subjects, and class assignments',
+                'description' => 'Teachers, subjects, and class assignments',
                 'icon' => 'fas fa-chalkboard-teacher',
                 'route' => 'teachers.index',
                 'order' => 5,
@@ -112,7 +111,7 @@ class ModuleSeeder extends Seeder
                     'delete_teachers'
                 ],
                 'submodules' => [
-                    ['name' => 'Teacher Profiles', 'route' => 'teachers.index'],
+                    ['name' => 'Teachers', 'route' => 'teachers.index'],
                     ['name' => 'Teacher Subjects', 'route' => 'teacher-subjects.index'],
                 ],
             ],
@@ -153,7 +152,7 @@ class ModuleSeeder extends Seeder
                 ],
                 'submodules' => [
                     ['name' => 'Fee Types', 'route' => 'fee-types.index'],
-                    ['name' => 'Invoice Generation', 'route' => 'invoices.create'],
+                    ['name' => 'Invoice Generation', 'route' => 'invoices.index'],
                     ['name' => 'Payment Tracking', 'route' => 'payments.index'],
                     ['name' => 'Due Alerts', 'route' => 'alerts.due'],
                     ['name' => 'Reports', 'route' => 'fees.reports'],

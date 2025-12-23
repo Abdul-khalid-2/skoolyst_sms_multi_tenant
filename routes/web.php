@@ -505,7 +505,7 @@ Route::middleware(['auth'])->group(function () {
 
     Route::get('fees/invoices', function () {
         return view('dashboard.fees.invoices');
-    })->name('invoices.create');
+    })->name('invoices.index');
 
     Route::get('fees/payments', function () {
         return view('dashboard.fees.payments');

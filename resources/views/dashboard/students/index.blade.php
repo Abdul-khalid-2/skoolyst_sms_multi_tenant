@@ -21,7 +21,7 @@
                 </nav>
             </div>
             <div>
-                <a href="#" class="btn btn-primary add-list">
+                <a href="{{ route('students.create') }}" class="btn btn-primary add-list">
                     <i class="las la-plus mr-3"></i>Register New Student
                 </a>
             </div>
