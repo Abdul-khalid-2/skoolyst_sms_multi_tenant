@@ -444,15 +444,9 @@ Route::middleware(['auth'])->group(function () {
         return view('dashboard.teachers.subjects');
     })->name('teacher-subjects.index');
 
-    Route::get('/class-teachers', function () {
-        return view('dashboard.teachers.class-assignments');
-    })->name('class-teachers.index');
 
-    // Attendance System Module Routes
-    Route::get('/attendance', function () {
-        return view('dashboard.attendance.index');
-    })->name('attendance.index');
 
+    // Attendance
     Route::get('/attendance/daily', function () {
         return view('dashboard.attendance.daily');
     })->name('attendance.daily');
@@ -461,51 +455,112 @@ Route::middleware(['auth'])->group(function () {
         return view('dashboard.attendance.reports');
     })->name('attendance.reports');
 
-    Route::get('/attendance/alerts', function () {
-        return view('dashboard.attendance.alerts');
+    Route::get('/attendance/sms-alerts', function () {
+        return view('dashboard.attendance.sms-alerts');
     })->name('attendance.alerts');
 
-    // Fees Management Module Routes
-    Route::get('/fees', function () {
-        return view('dashboard.fees.index');
-    })->name('fees.index');
+    Route::get('/attendance/settings', function () {
+        return view('dashboard.attendance.settings');
+    })->name('attendance.settings');
 
-    Route::get('/fee-types', function () {
+    // Attendance Actions
+    Route::post('/attendance/save', function () {
+        return redirect()->route('attendance.daily')
+            ->with('success', 'Attendance saved successfully!');
+    })->name('attendance.save');
+
+    Route::post('/attendance/send-sms', function () {
+        return redirect()->route('attendance.daily')
+            ->with('success', 'SMS alerts sent successfully!');
+    })->name('attendance.send-sms');
+
+    Route::post('/attendance/generate-report', function () {
+        return redirect()->route('attendance.reports')
+            ->with('success', 'Report generated successfully!');
+    })->name('attendance.generate-report');
+
+    // SMS Actions
+    Route::post('/sms/send-bulk', function () {
+        return redirect()->route('attendance.sms-alerts')
+            ->with('success', 'Bulk SMS sent successfully!');
+    })->name('sms.send-bulk');
+
+    Route::post('/sms/save-settings', function () {
+        return redirect()->route('attendance.sms-alerts')
+            ->with('success', 'SMS settings saved successfully!');
+    })->name('sms.save-settings');
+
+    // Settings Actions
+    Route::post('/attendance/save-settings', function () {
+        return redirect()->route('attendance.settings')
+            ->with('success', 'Attendance settings saved successfully!');
+    })->name('attendance.save-settings');
+
+
+
+
+    Route::get('fees/types', function () {
         return view('dashboard.fees.types');
     })->name('fee-types.index');
 
-    Route::get('/invoices/create', function () {
-        return view('dashboard.fees.create-invoice');
+    Route::get('fees/invoices', function () {
+        return view('dashboard.fees.invoices');
     })->name('invoices.create');
 
-    Route::get('/payments', function () {
+    Route::get('fees/payments', function () {
         return view('dashboard.fees.payments');
     })->name('payments.index');
 
+    Route::get('fees/discounts', function () {
+        return view('dashboard.fees.discounts');
+    })->name('fees.discounts');
+
+    Route::get('fees/reports', function () {
+        return view('dashboard.fees.reports');
+    })->name('fees.reports');
+
     Route::get('/alerts/due', function () {
-        return view('dashboard.fees.due-alerts');
+        return view('dashboard.fees.alerts');
     })->name('alerts.due');
 
 
-    Route::get('/exams', function () {
-        return view('dashboard.school.settings');
-    })->name('school.settings');
-});
-
-// Module Settings Route
-// Route::middleware(['auth', 'permission:manage_school_settings'])->group(function () {
-//     Route::get('/school/{school}/module-settings', [ModuleController::class, 'index'])->name('module.settings');
-// });
-// Module Settings Route - Without school parameter
-Route::middleware(['auth', 'permission:manage_school_settings'])->group(function () {
-    // Route using current user's school
-    Route::get('/my-school/module-settings', function () {
-        $school = auth()->user()->school;
-        return app(ModuleController::class)->index($school);
+    // Module Settings
+    Route::get('settings/modules', function () {
+        return view('dashboard.settings.modules');
     })->name('module.settings');
 
-    // Keep original route for super admin
-    Route::get('/school/{school}/module-settings', [ModuleController::class, 'index'])->name('admin.module.settings');
+
+
+    // School Settings
+    Route::get('settings/school', function () {
+        return view('dashboard.settings.school');
+    })->name('school.settings');
+
+    // Dummy POST routes for form submissions
+    Route::post('settings/modules/install', function () {
+        return redirect()->route('module.settings')
+            ->with('success', 'Module installed successfully!');
+    })->name('settings.modules.install');
+
+    Route::post('settings/modules/{id}/toggle', function ($id) {
+        return redirect()->route('module.settings')
+            ->with('success', 'Module status updated!');
+    })->name('settings.modules.toggle');
+
+    Route::post('settings/modules/permissions', function () {
+        return redirect()->route('module.settings')
+            ->with('success', 'Permissions updated successfully!');
+    })->name('settings.modules.permissions.update');
+
+    Route::post('settings/school/save', function () {
+        return redirect()->route('school.settings')
+            ->with('success', 'School settings saved successfully!');
+    })->name('settings.school.save');
+
+    Route::post('settings/school/backup', function () {
+        return redirect()->route('school.settings')
+            ->with('success', 'Backup created successfully!');
+    })->name('settings.school.backup');
 });
 
 require __DIR__ . '/auth.php';

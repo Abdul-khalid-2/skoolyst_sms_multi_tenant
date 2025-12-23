@@ -106,7 +106,7 @@
                         </a>
                         <ul id="settings" class="iq-submenu collapse {{ request()->is('settings*') ? 'show' : '' }}" data-parent="#iq-sidebar-toggle">
                             <li class="{{ request()->routeIs('module.settings') ? 'active' : '' }}">
-                                <a href="{{ route('module.settings', ['school' => auth()->user()->school_id]) }}">
+                                <a href="{{ route('module.settings') }}">
                                     <!-- Submenu icon -->
                                     <svg class="svg-icon" width="16" height="16" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round">
                                         <line x1="5" y1="12" x2="19" y2="12"></line>
