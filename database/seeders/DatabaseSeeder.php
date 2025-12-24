@@ -14,6 +14,7 @@ class DatabaseSeeder extends Seeder
             RolePermissionSeeder::class,
             ModuleSeeder::class,
             SchoolSeeder::class,
+            DefaultSettingsSeeder::class,
         ]);
 
         // ====================

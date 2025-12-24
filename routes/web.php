@@ -2,6 +2,7 @@
 
 use App\Http\Controllers\ModuleController;
 use App\Http\Controllers\ProfileController;
+use App\Http\Controllers\SettingController;
 use Illuminate\Support\Facades\Route;
 
 Route::get('/', function () {
@@ -524,6 +525,12 @@ Route::middleware(['auth'])->group(function () {
     })->name('alerts.due');
 
 
+
+    // ============================================
+    // SETTING MODULE ROUTES
+    // ============================================
+
+
     // Module Settings
     Route::get('settings/modules', function () {
         return view('dashboard.settings.modules');
@@ -531,31 +538,46 @@ Route::middleware(['auth'])->group(function () {
 
 
 
-    // School Settings
-    Route::get('settings/school', function () {
-        return view('dashboard.settings.school');
-    })->name('school.settings');
+    // School Settings ------------------------------------
+    // Route::get('settings/school', function () {
+    //     return view('dashboard.settings.school');
+    // })->name('school.settings');
+    Route::middleware(['auth', 'verified'])->group(function () {
+        // Settings routes
+        Route::prefix('settings')->group(function () {
+            Route::get('/', [SettingController::class, 'index'])->name('school.settings');
+            Route::post('/', [SettingController::class, 'store'])->name('settings.store');
+            Route::post('/category/{category}', [SettingController::class, 'updateCategory'])->name('settings.category');
+            Route::post('/upload-file', [SettingController::class, 'uploadFile'])->name('settings.upload');
+            Route::post('/export', [SettingController::class, 'export'])->name('settings.export');
+            Route::post('/reset', [SettingController::class, 'reset'])->name('settings.reset');
+        });
+    });
+
+
+
+
 
     // Dummy POST routes for form submissions
-    Route::post('settings/modules/install', function () {
-        return redirect()->route('module.settings')
-            ->with('success', 'Module installed successfully!');
-    })->name('settings.modules.install');
+    // Route::post('settings/modules/install', function () {
+    //     return redirect()->route('module.settings')
+    //         ->with('success', 'Module installed successfully!');
+    // })->name('settings.modules.install');
 
-    Route::post('settings/modules/{id}/toggle', function ($id) {
-        return redirect()->route('module.settings')
-            ->with('success', 'Module status updated!');
-    })->name('settings.modules.toggle');
+    // Route::post('settings/modules/{id}/toggle', function ($id) {
+    //     return redirect()->route('module.settings')
+    //         ->with('success', 'Module status updated!');
+    // })->name('settings.modules.toggle');
 
-    Route::post('settings/modules/permissions', function () {
-        return redirect()->route('module.settings')
-            ->with('success', 'Permissions updated successfully!');
-    })->name('settings.modules.permissions.update');
+    // Route::post('settings/modules/permissions', function () {
+    //     return redirect()->route('module.settings')
+    //         ->with('success', 'Permissions updated successfully!');
+    // })->name('settings.modules.permissions.update');
 
-    Route::post('settings/school/save', function () {
-        return redirect()->route('school.settings')
-            ->with('success', 'School settings saved successfully!');
-    })->name('settings.school.save');
+    // Route::post('settings/school/save', function () {
+    //     return redirect()->route('school.settings')
+    //         ->with('success', 'School settings saved successfully!');
+    // })->name('settings.school.save');
 
     Route::post('settings/school/backup', function () {
         return redirect()->route('school.settings')
