@@ -71,18 +71,18 @@
                         <tbody>
                             @forelse($schools as $school)
                             <tr>
-                                <td>{{ $loop->iteration }}</td>
+                                <td>{{ ($schools->currentPage() - 1) * $schools->perPage() + $loop->iteration }}</td>
                                 <td>
                                     @if($school->logo)
-                                        <img src="{{ asset('storage/' . $school->logo) }}" 
-                                             alt="{{ $school->name }}" 
-                                             class="rounded-circle" 
-                                             width="40" height="40">
+                                    <img src="{{ asset('website/' . $school->logo) }}"
+                                        alt="{{ $school->name }}"
+                                        class="rounded-circle"
+                                        width="40" height="40" style="object-fit: cover;">
                                     @else
-                                        <div class="avatar-placeholder rounded-circle d-inline-flex align-items-center justify-content-center" 
-                                             style="width: 40px; height: 40px; background: #f0f0f0;">
-                                            <i class="las la-school text-muted"></i>
-                                        </div>
+                                    <div class="avatar-placeholder rounded-circle d-inline-flex align-items-center justify-content-center"
+                                        style="width: 40px; height: 40px; background: #f0f0f0;">
+                                        <i class="las la-school text-muted"></i>
+                                    </div>
                                     @endif
                                 </td>
                                 <td>{{ $school->name }}</td>
@@ -92,47 +92,50 @@
                                     <span class="badge badge-info">{{ $school->branches_count ?? 0 }}</span>
                                 </td>
                                 <td>
-                                    {{-- <x-status-badge :status="$school->status" /> --}}
+                                    <span class="badge {{ $school->status == 'active' ? 'badge-success' : 'badge-danger' }}">
+                                        {{ ucfirst($school->status) }}
+                                    </span>
                                 </td>
                                 <td>{{ $school->created_at->format('d M Y') }}</td>
                                 <td>
                                     <div class="d-flex align-items-center">
                                         <!-- View -->
-                                        <a href="{{ route('schools.show', $school->id) }}" 
-                                           class="btn btn-sm btn-info mr-2" 
-                                           data-toggle="tooltip" title="View">
+                                        <a href="{{ route('schools.show', $school->id) }}"
+                                            class="btn btn-sm btn-info mr-2"
+                                            data-toggle="tooltip" title="View">
                                             <i class="las la-eye"></i>
                                         </a>
                                         
                                         <!-- Settings -->
-                                         <a href="{{ route('schools.settings.show', $school->id) }}" 
-                                           class="btn btn-sm btn-secondary mr-2" 
-                                           data-toggle="tooltip" title="Settings">
+                                        <a href="{{ route('schools.settings.show', $school->id) }}"
+                                            class="btn btn-sm btn-secondary mr-2"
+                                            data-toggle="tooltip" title="Settings">
                                             <i class="las la-cog"></i>
                                         </a>
                                         
                                         <!-- Activation -->
-                                        <a href="{{ route('schools.activation', $school->id) }}" 
-                                           class="btn btn-sm {{ $school->status == 'active' ? 'btn-warning' : 'btn-success' }} mr-2" 
-                                           data-toggle="tooltip" 
-                                           title="{{ $school->status == 'active' ? 'Deactivate' : 'Activate' }}">
+                                        <a href="{{ route('schools.activation', $school->id) }}"
+                                            class="btn btn-sm {{ $school->status == 'active' ? 'btn-warning' : 'btn-success' }} mr-2"
+                                            data-toggle="tooltip"
+                                            title="{{ $school->status == 'active' ? 'Deactivate' : 'Activate' }}">
                                             <i class="las la-power-off"></i>
                                         </a>
                                         
                                         <!-- Edit -->
-                                        <a href="{{ route('schools.edit', $school->id) }}" 
-                                           class="btn btn-sm btn-primary mr-2" 
-                                           data-toggle="tooltip" title="Edit">
+                                        <a href="{{ route('schools.edit', $school->id) }}"
+                                            class="btn btn-sm btn-primary mr-2"
+                                            data-toggle="tooltip" title="Edit">
                                             <i class="las la-edit"></i>
                                         </a>
                                         
                                         <!-- Delete (Soft Delete) -->
-                                        <button type="button" 
-                                                class="btn btn-sm btn-danger" 
-                                                data-toggle="modal" 
-                                                data-target="#deleteModal"
-                                                data-url="{{ route('schools.destroy', $school->id) }}"
-                                                title="Delete">
+                                        <button type="button"
+                                            class="btn btn-sm btn-danger"
+                                            data-toggle="modal"
+                                            data-target="#deleteModal"
+                                            data-url="{{ route('schools.destroy', $school->id) }}"
+                                            data-name="{{ $school->name }}"
+                                            title="Delete">
                                             <i class="las la-trash"></i>
                                         </button>
                                     </div>
@@ -156,11 +159,11 @@
                     </table>
                     
                     <!-- Pagination -->
-                    {{-- @if($schools->hasPages())
+                    @if($schools->hasPages())
                     <div class="d-flex justify-content-center mt-4">
                         {{ $schools->links() }}
                     </div>
-                    @endif --}}
+                    @endif
                 </div>
             </div>
         </div>

@@ -96,7 +96,7 @@
                                         @if($school->logo)
                                             <div class="mb-3">
                                                 <p class="mb-1">Current Logo:</p>
-                                                <img src="{{ asset('storage/' . $school->logo) }}" 
+                                                <img src="{{ asset('website/' . $school->logo) }}" 
                                                      alt="{{ $school->name }}" 
                                                      class="img-thumbnail" 
                                                      style="max-width: 150px;">

@@ -2,122 +2,142 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\Setting;
 use App\Models\School;
+use App\Models\Setting;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Auth;
-use Illuminate\Support\Facades\Storage;
-use Illuminate\Support\Facades\Validator;
+use Illuminate\Support\Facades\DB;
 
 class SchoolSettingsController extends Controller
 {
-    public function index()
+    /**
+     * Display school settings.
+     */
+    public function show(School $school)
     {
-        $user = Auth::user();
-        $school = $user->school;
+        // Get all settings for this school
+        $settings = Setting::where('school_id', $school->id)
+            ->pluck('value', 'key')
+            ->toArray();
 
-        // Load settings grouped by category
-        $settings = [
-            'general' => $this->getSettingsByCategory('general', $school->id),
-            'appearance' => $this->getSettingsByCategory('appearance', $school->id),
-            'academic' => $this->getSettingsByCategory('academic', $school->id),
-            'fee' => $this->getSettingsByCategory('fee', $school->id),
-            'attendance' => $this->getSettingsByCategory('attendance', $school->id),
-            'notification' => $this->getSettingsByCategory('notification', $school->id),
-            'security' => $this->getSettingsByCategory('security', $school->id),
-            'backup' => $this->getSettingsByCategory('backup', $school->id),
+        // Default settings if not exists
+        $defaultSettings = [
+            'current_academic_year' => date('Y') . '-' . (date('Y') + 1),
+            'default_class' => '1st',
+            'timezone' => 'Asia/Karachi',
+            'currency' => 'PKR',
+            'date_format' => 'd/m/Y',
+            'time_format' => '12',
+            'grading_system' => 'percentage',
+            'passing_percentage' => '40',
+            'enable_attendance' => '0',
+            'enable_exams' => '0',
+            'fee_due_days' => '10',
+            'late_fee_amount' => '500',
+            'late_fee_type' => 'fixed',
+            'enable_partial_payment' => '0',
+            'enable_online_payment' => '0',
+            'enable_fee_waiver' => '0',
+            'enable_sibling_discount' => '0',
+            'enable_early_payment_discount' => '0',
+            'enable_scholarship' => '0',
+            'enable_parent_portal' => '0',
+            'enable_student_portal' => '0',
+            'enable_sms_notifications' => '0',
+            'enable_teacher_portal' => '0',
+            'enable_attendance_tracking' => '0',
+            'enable_library' => '0',
+            'enable_inventory' => '0',
+            'enable_transport' => '0',
+            'enable_two_factor' => '0',
+            'enable_audit_log' => '0',
+            'primary_color' => '#007bff',
+            'secondary_color' => '#6c757d',
+            'session_timeout' => '30',
+            'max_login_attempts' => '5',
         ];
 
-        return view('dashboard.settings.school', compact('school', 'settings'));
+        // Merge with existing settings
+        $settings = array_merge($defaultSettings, $settings);
+
+        return view('dashboard.schools.settings', compact('school', 'settings'));
     }
 
-    private function getSettingsByCategory($category, $schoolId)
+    /**
+     * Update school settings.
+     */
+    public function update(Request $request, School $school)
     {
-        $settings = Setting::where('school_id', $schoolId)
-            ->where('key', 'like', $category . '.%')
-            ->get()
-            ->keyBy(function ($item) use ($category) {
-                return str_replace($category . '.', '', $item->key);
-            })
-            ->map(function ($item) {
-                return $item->value;
-            });
-
-        return $settings;
-    }
-
-    public function save(Request $request)
-    {
-        $user = Auth::user();
-        $schoolId = $user->school_id;
-
-        $categories = [
-            'general' => [
-                'school_name' => 'required|string|max:255',
-                'school_code' => 'nullable|string|max:50',
-                'email' => 'required|email',
-                'phone' => 'required|string|max:20',
-                'address' => 'nullable|string',
-                'website' => 'nullable|url',
-                'established_year' => 'nullable|integer|min:1900|max:' . date('Y'),
-            ],
-            'appearance' => [
-                'primary_color' => 'nullable|string|regex:/^#[0-9A-F]{6}$/i',
-                'secondary_color' => 'nullable|string|regex:/^#[0-9A-F]{6}$/i',
-                'theme' => 'nullable|in:light,dark,auto',
-                'sidebar_style' => 'nullable|in:default,compact,icon-only',
-                'dashboard_style' => 'nullable|in:modern,classic,minimal',
-            ],
-            // Add more validation rules for other categories
-        ];
-
-        DB::beginTransaction();
         try {
-            // Update school basic info
-            if ($request->has('school_name')) {
-                $school = School::find($schoolId);
-                $school->update([
-                    'name' => $request->input('general.school_name'),
-                    'email' => $request->input('general.email'),
-                    'phone' => $request->input('general.phone'),
-                    'address' => $request->input('general.address'),
-                ]);
+            DB::beginTransaction();
+
+            $allSettings = $request->except(['_token', '_method']);
+
+            // Define all checkbox fields with their default values (0 for unchecked)
+            $checkboxFields = [
+                'enable_attendance',
+                'enable_exams',
+                'enable_partial_payment',
+                'enable_online_payment',
+                'enable_fee_waiver',
+                'enable_sibling_discount',
+                'enable_early_payment_discount',
+                'enable_scholarship',
+                'enable_parent_portal',
+                'enable_student_portal',
+                'enable_sms_notifications',
+                'enable_teacher_portal',
+                'enable_attendance_tracking',
+                'enable_library',
+                'enable_inventory',
+                'enable_transport',
+                'enable_two_factor',
+                'enable_audit_log'
+            ];
+
+            // Initialize all checkbox fields to '0' first
+            foreach ($checkboxFields as $field) {
+                $allSettings[$field] = '0';
             }
 
-            // Save all settings
-            foreach ($categories as $category => $rules) {
-                if ($request->has($category)) {
-                    $data = $request->input($category);
-
-                    foreach ($data as $key => $value) {
-                        Setting::setValue("{$category}.{$key}", $value, $schoolId);
-                    }
+            // Now override with submitted values if they exist
+            foreach ($request->all() as $key => $value) {
+                if (in_array($key, $checkboxFields)) {
+                    $allSettings[$key] = $value == '1' ? '1' : '0';
                 }
             }
 
-            // Handle file uploads
-            if ($request->hasFile('general.logo')) {
-                $this->uploadLogo($request->file('general.logo'), $schoolId);
+            // Handle terms array
+            if ($request->has('terms')) {
+                $allSettings['terms'] = json_encode($request->terms);
+            } else {
+                $allSettings['terms'] = json_encode([]);
+            }
+
+            // Save all settings
+            foreach ($allSettings as $key => $value) {
+                // Convert arrays to JSON
+                if (is_array($value)) {
+                    $value = json_encode($value);
+                }
+
+                Setting::updateOrCreate(
+                    [
+                        'school_id' => $school->id,
+                        'key' => $key
+                    ],
+                    ['value' => $value]
+                );
             }
 
             DB::commit();
-            return redirect()->route('school.settings')->with('success', 'Settings saved successfully!');
+
+            return redirect()->route('schools.settings.show', $school)
+                ->with('success', 'Settings updated successfully!');
         } catch (\Exception $e) {
             DB::rollBack();
-            return redirect()->back()->with('error', 'Error saving settings: ' . $e->getMessage());
+
+            return redirect()->back()
+                ->with('error', 'Error updating settings: ' . $e->getMessage());
         }
-    }
-
-    private function uploadLogo($file, $schoolId)
-    {
-        $path = $file->store("schools/{$schoolId}/logos", 'public');
-        Setting::setValue('general.logo', $path, $schoolId);
-    }
-
-    public function createBackup()
-    {
-        // Implement backup logic here
-        // This could use spatie/laravel-backup package
-        return redirect()->route('school.settings')->with('success', 'Backup created successfully!');
     }
 }
