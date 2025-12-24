@@ -2,11 +2,11 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\Module;
-use App\Http\Requests\StoreModuleRequest;
-use App\Http\Requests\UpdateModuleRequest;
+use App\Models\Branch;
+use App\Http\Requests\StoreBranchRequest;
+use App\Http\Requests\UpdateBranchRequest;
 
-class ModuleController extends Controller
+class BranchController extends Controller
 {
     /**
      * Display a listing of the resource.
@@ -27,7 +27,7 @@ class ModuleController extends Controller
     /**
      * Store a newly created resource in storage.
      */
-    public function store(StoreModuleRequest $request)
+    public function store(StoreBranchRequest $request)
     {
         //
     }
@@ -35,7 +35,7 @@ class ModuleController extends Controller
     /**
      * Display the specified resource.
      */
-    public function show(Module $module)
+    public function show(Branch $branch)
     {
         //
     }
@@ -43,7 +43,7 @@ class ModuleController extends Controller
     /**
      * Show the form for editing the specified resource.
      */
-    public function edit(Module $module)
+    public function edit(Branch $branch)
     {
         //
     }
@@ -51,7 +51,7 @@ class ModuleController extends Controller
     /**
      * Update the specified resource in storage.
      */
-    public function update(UpdateModuleRequest $request, Module $module)
+    public function update(UpdateBranchRequest $request, Branch $branch)
     {
         //
     }
@@ -59,7 +59,7 @@ class ModuleController extends Controller
     /**
      * Remove the specified resource from storage.
      */
-    public function destroy(Module $module)
+    public function destroy(Branch $branch)
     {
         //
     }

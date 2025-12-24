@@ -2,11 +2,11 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\Module;
-use App\Http\Requests\StoreModuleRequest;
-use App\Http\Requests\UpdateModuleRequest;
+use App\Models\SchoolModule;
+use App\Http\Requests\StoreSchoolModuleRequest;
+use App\Http\Requests\UpdateSchoolModuleRequest;
 
-class ModuleController extends Controller
+class SchoolModuleController extends Controller
 {
     /**
      * Display a listing of the resource.
@@ -27,7 +27,7 @@ class ModuleController extends Controller
     /**
      * Store a newly created resource in storage.
      */
-    public function store(StoreModuleRequest $request)
+    public function store(StoreSchoolModuleRequest $request)
     {
         //
     }
@@ -35,7 +35,7 @@ class ModuleController extends Controller
     /**
      * Display the specified resource.
      */
-    public function show(Module $module)
+    public function show(SchoolModule $schoolModule)
     {
         //
     }
@@ -43,7 +43,7 @@ class ModuleController extends Controller
     /**
      * Show the form for editing the specified resource.
      */
-    public function edit(Module $module)
+    public function edit(SchoolModule $schoolModule)
     {
         //
     }
@@ -51,7 +51,7 @@ class ModuleController extends Controller
     /**
      * Update the specified resource in storage.
      */
-    public function update(UpdateModuleRequest $request, Module $module)
+    public function update(UpdateSchoolModuleRequest $request, SchoolModule $schoolModule)
     {
         //
     }
@@ -59,7 +59,7 @@ class ModuleController extends Controller
     /**
      * Remove the specified resource from storage.
      */
-    public function destroy(Module $module)
+    public function destroy(SchoolModule $schoolModule)
     {
         //
     }
