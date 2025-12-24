@@ -9,6 +9,7 @@ use App\Models\Branch;
 use Spatie\Permission\Models\Role;
 use Spatie\Permission\Models\Permission;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Str;
 
 class SchoolSeeder extends Seeder
 {
@@ -19,6 +20,7 @@ class SchoolSeeder extends Seeder
         // ====================
         $mainSchool = School::create([
             'name' => 'Main School System',
+            'slug' => Str::slug('Main School System'),
             'email' => 'admin@mainschool.com',
             'phone' => '+1234567890',
             'address' => '123 Main Street, City, Country',
