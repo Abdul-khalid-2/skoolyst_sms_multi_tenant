@@ -59,11 +59,11 @@
                         <div class="col-md-6">
                             <div class="form-group">
                                 <label>Current Academic Year *</label>
-                                <select name="current_academic_year" class="form-control" required>
+                                <select name="academic_current_academic_year" class="form-control" required>
                                     <option value="">Select Academic Year</option>
-                                    <option value="2023-2024" {{ ($settings['current_academic_year'] ?? '') == '2023-2024' ? 'selected' : '' }}>2023-2024</option>
-                                    <option value="2024-2025" {{ ($settings['current_academic_year'] ?? '') == '2024-2025' ? 'selected' : '' }}>2024-2025</option>
-                                    <option value="2025-2026" {{ ($settings['current_academic_year'] ?? '') == '2025-2026' ? 'selected' : '' }}>2025-2026</option>
+                                    <option value="2025-2026" {{ ($settings['academic_current_academic_year'] ?? '') == '2025-2026' ? 'selected' : '' }}>2025-2026</option>
+                                    <option value="2026-2027" {{ ($settings['academic_current_academic_year'] ?? '') == '2026-2027' ? 'selected' : '' }}>2026-2027</option>
+                                    <option value="2027-2028" {{ ($settings['academic_current_academic_year'] ?? '') == '2027-2028' ? 'selected' : '' }}>2027-2028</option>
                                 </select>
                             </div>
                         </div>

@@ -48,7 +48,7 @@
                         <div class="row">
                             <div class="col-md-4 text-center mb-4">
                                 @if($school->logo)
-                                <img src="{{ $school->logo_url }}"
+                                <img src="{{ asset('website/' . $school->logo) }}"
                                     alt="{{ $school->name }}"
                                     class="img-fluid rounded-circle"
                                     style="max-width: 200px;">
