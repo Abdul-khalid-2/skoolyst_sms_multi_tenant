@@ -46,6 +46,32 @@ class Module extends Model
 
     public function getSubmoduleListAttribute()
     {
-        return $this->submodules ?? [];
+        // return $this->submodules ?? [];
+        $submodules = $this->submodules ?? [];
+
+        // Ensure each submodule has required keys
+        return array_map(function ($submodule, $index) {
+            if (is_string($submodule)) {
+                return [
+                    'code' => $submodule,
+                    'name' => ucfirst(str_replace('_', ' ', $submodule)),
+                    'description' => null
+                ];
+            }
+
+            if (is_array($submodule)) {
+                return [
+                    'code' => $submodule['code'] ?? 'submodule_' . $index,
+                    'name' => $submodule['name'] ?? 'Submodule ' . ($index + 1),
+                    'description' => $submodule['description'] ?? null
+                ];
+            }
+
+            return [
+                'code' => 'submodule_' . $index,
+                'name' => 'Submodule ' . ($index + 1),
+                'description' => null
+            ];
+        }, $submodules, array_keys($submodules));
     }
 }

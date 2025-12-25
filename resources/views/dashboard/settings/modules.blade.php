@@ -60,6 +60,12 @@
             padding: 2px 8px;
             border-radius: 10px;
         }
+        
+        .bg-core { background-color: #007bff; }
+        .bg-standard { background-color: #28a745; }
+        .bg-premium { background-color: #6f42c1; }
+        .bg-addon { background-color: #fd7e14; }
+        .bg-plugin { background-color: #20c997; }
     </style>
     @endpush
 
@@ -92,7 +98,7 @@
                         <div class="d-flex justify-content-between align-items-center">
                             <div>
                                 <h6 class="text-white mb-0">Total Modules</h6>
-                                <h2 class="mb-0 text-white">12</h2>
+                                <h2 class="mb-0 text-white">{{ $modules->count() }}</h2>
                             </div>
                             <div class="bg-white rounded p-3">
                                 <i class="las la-cubes fa-lg text-primary"></i>
@@ -107,7 +113,7 @@
                         <div class="d-flex justify-content-between align-items-center">
                             <div>
                                 <h6 class="text-white mb-0">Active</h6>
-                                <h2 class="mb-0 text-white">8</h2>
+                                <h2 class="mb-0 text-white">{{ $modules->where('is_active', true)->count() }}</h2>
                             </div>
                             <div class="bg-white rounded p-3">
                                 <i class="las la-check-circle fa-lg text-success"></i>
@@ -122,7 +128,7 @@
                         <div class="d-flex justify-content-between align-items-center">
                             <div>
                                 <h6 class="text-white mb-0">Inactive</h6>
-                                <h2 class="mb-0 text-white">3</h2>
+                                <h2 class="mb-0 text-white">{{ $modules->where('is_active', false)->count() }}</h2>
                             </div>
                             <div class="bg-white rounded p-3">
                                 <i class="las la-toggle-off fa-lg text-warning"></i>
@@ -137,7 +143,7 @@
                         <div class="d-flex justify-content-between align-items-center">
                             <div>
                                 <h6 class="text-white mb-0">System Core</h6>
-                                <h2 class="mb-0 text-white">4</h2>
+                                <h2 class="mb-0 text-white">{{ $modules->where('is_core', true)->count() }}</h2>
                             </div>
                             <div class="bg-white rounded p-3">
                                 <i class="las la-server fa-lg text-info"></i>
@@ -150,401 +156,101 @@
 
         <!-- Modules Grid -->
         <div class="row mb-4">
-            <!-- User Management Module -->
+            @foreach($modules as $module)
+            @php
+                $moduleColor = match(true) {
+                    $module->is_core => 'primary',
+                    str_contains(strtolower($module->code), 'premium') => 'info',
+                    str_contains(strtolower($module->code), 'standard') => 'success',
+                    str_contains(strtolower($module->code), 'addon') => 'warning',
+                    default => 'secondary'
+                };
+                
+                $iconMap = [
+                    'user' => 'la-users',
+                    'academic' => 'la-graduation-cap',
+                    'student' => 'la-user-graduate',
+                    'teacher' => 'la-chalkboard-teacher',
+                    'attendance' => 'la-calendar-check',
+                    'fee' => 'la-money-bill-wave',
+                    'exam' => 'la-clipboard-list',
+                    'library' => 'la-book',
+                    'transport' => 'la-bus',
+                    'hostel' => 'la-home',
+                    'inventory' => 'la-boxes',
+                    'notice' => 'la-bullhorn',
+                    'message' => 'la-envelope'
+                ];
+                
+                $moduleIcon = 'la-cube';
+                foreach($iconMap as $key => $icon) {
+                    if(str_contains(strtolower($module->code), $key) || str_contains(strtolower($module->name), $key)) {
+                        $moduleIcon = $icon;
+                        break;
+                    }
+                }
+                
+                $schoolModule = $module->schoolModules->where('school_id', auth()->user()->school_id)->first();
+                $isActiveForSchool = $schoolModule ? $schoolModule->is_active : $module->is_active;
+            @endphp
             <div class="col-xl-4 col-lg-6 col-md-6 col-sm-12 mb-4">
                 <div class="module-card h-100">
                     <div class="card-body">
                         <div class="d-flex justify-content-between align-items-start mb-3">
                             <div class="d-flex align-items-center">
-                                <div class="module-icon bg-primary text-white">
-                                    <i class="las la-users"></i>
+                                <div class="module-icon bg-{{ $moduleColor }} text-white">
+                                    <i class="las {{ $moduleIcon }}"></i>
                                 </div>
                                 <div>
-                                    <h5 class="mb-0">User Management</h5>
-                                    <p class="text-muted mb-0">v2.5.1</p>
+                                    <h5 class="mb-0">{{ $module->name }}</h5>
+                                    <p class="text-muted mb-0">{{ $module->code }}</p>
                                 </div>
                             </div>
                             <div>
-                                <span class="module-status active"></span>
-                                <small class="text-success">Active</small>
+                                <span class="module-status {{ $isActiveForSchool ? 'active' : 'inactive' }}"></span>
+                                <small class="{{ $isActiveForSchool ? 'text-success' : 'text-danger' }}">
+                                    {{ $isActiveForSchool ? 'Active' : 'Inactive' }}
+                                </small>
                             </div>
                         </div>
                         
-                        <p class="text-muted mb-3">Manage users, roles, permissions and profiles</p>
+                        <p class="text-muted mb-3">{{ $module->description ?? 'No description available' }}</p>
                         
                         <div class="d-flex justify-content-between align-items-center mb-3">
                             <div>
-                                <small class="text-muted">Last Updated: 15 Dec 2024</small>
+                                <small class="text-muted">
+                                    Last Updated: {{ $module->updated_at->format('d M Y') }}
+                                </small>
                             </div>
-                            <span class="version-badge bg-primary text-white">Core</span>
+                            <span class="version-badge bg-{{ $moduleColor }} text-white">
+                                {{ $module->is_core ? 'Core' : 'Module' }}
+                            </span>
                         </div>
                         
                         <div class="btn-group w-100">
-                            <button class="btn btn-sm btn-outline-primary">
+                            <button class="btn btn-sm btn-outline-primary module-settings" data-module-id="{{ $module->id }}">
                                 <i class="las la-cog mr-1"></i> Settings
                             </button>
-                            <button class="btn btn-sm btn-outline-success">
+                            <button class="btn btn-sm btn-outline-success module-permissions" data-module-id="{{ $module->id }}">
                                 <i class="las la-key mr-1"></i> Permissions
                             </button>
-                            <button class="btn btn-sm btn-outline-warning">
-                                <i class="las la-toggle-on mr-1"></i> Disable
+                            @if($module->is_core)
+                            <button class="btn btn-sm btn-outline-secondary" disabled>
+                                <i class="las la-lock mr-1"></i> Core
                             </button>
+                            @else
+                            <button class="btn btn-sm {{ $isActiveForSchool ? 'btn-outline-warning' : 'btn-outline-success' }} toggle-module"
+                                    data-module-id="{{ $module->id }}"
+                                    data-action="{{ $isActiveForSchool ? 'disable' : 'enable' }}">
+                                <i class="las {{ $isActiveForSchool ? 'la-toggle-on' : 'la-toggle-off' }} mr-1"></i>
+                                {{ $isActiveForSchool ? 'Disable' : 'Enable' }}
+                            </button>
+                            @endif
                         </div>
                     </div>
                 </div>
             </div>
-
-            <!-- Academic Management Module -->
-            <div class="col-xl-4 col-lg-6 col-md-6 col-sm-12 mb-4">
-                <div class="module-card h-100">
-                    <div class="card-body">
-                        <div class="d-flex justify-content-between align-items-start mb-3">
-                            <div class="d-flex align-items-center">
-                                <div class="module-icon bg-success text-white">
-                                    <i class="las la-graduation-cap"></i>
-                                </div>
-                                <div>
-                                    <h5 class="mb-0">Academic Management</h5>
-                                    <p class="text-muted mb-0">v1.8.3</p>
-                                </div>
-                            </div>
-                            <div>
-                                <span class="module-status active"></span>
-                                <small class="text-success">Active</small>
-                            </div>
-                        </div>
-                        
-                        <p class="text-muted mb-3">Manage academic years, classes, sections, subjects</p>
-                        
-                        <div class="d-flex justify-content-between align-items-center mb-3">
-                            <div>
-                                <small class="text-muted">Last Updated: 10 Dec 2024</small>
-                            </div>
-                            <span class="version-badge bg-success text-white">Standard</span>
-                        </div>
-                        
-                        <div class="btn-group w-100">
-                            <button class="btn btn-sm btn-outline-primary">
-                                <i class="las la-cog mr-1"></i> Settings
-                            </button>
-                            <button class="btn btn-sm btn-outline-success">
-                                <i class="las la-key mr-1"></i> Permissions
-                            </button>
-                            <button class="btn btn-sm btn-outline-warning">
-                                <i class="las la-toggle-on mr-1"></i> Disable
-                            </button>
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Student Management Module -->
-            <div class="col-xl-4 col-lg-6 col-md-6 col-sm-12 mb-4">
-                <div class="module-card h-100">
-                    <div class="card-body">
-                        <div class="d-flex justify-content-between align-items-start mb-3">
-                            <div class="d-flex align-items-center">
-                                <div class="module-icon bg-info text-white">
-                                    <i class="las la-user-graduate"></i>
-                                </div>
-                                <div>
-                                    <h5 class="mb-0">Student Management</h5>
-                                    <p class="text-muted mb-0">v3.2.0</p>
-                                </div>
-                            </div>
-                            <div>
-                                <span class="module-status active"></span>
-                                <small class="text-success">Active</small>
-                            </div>
-                        </div>
-                        
-                        <p class="text-muted mb-3">Manage student admissions, profiles, and records</p>
-                        
-                        <div class="d-flex justify-content-between align-items-center mb-3">
-                            <div>
-                                <small class="text-muted">Last Updated: 05 Dec 2024</small>
-                            </div>
-                            <span class="version-badge bg-info text-white">Premium</span>
-                        </div>
-                        
-                        <div class="btn-group w-100">
-                            <button class="btn btn-sm btn-outline-primary">
-                                <i class="las la-cog mr-1"></i> Settings
-                            </button>
-                            <button class="btn btn-sm btn-outline-success">
-                                <i class="las la-key mr-1"></i> Permissions
-                            </button>
-                            <button class="btn btn-sm btn-outline-warning">
-                                <i class="las la-toggle-on mr-1"></i> Disable
-                            </button>
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Teacher Management Module -->
-            <div class="col-xl-4 col-lg-6 col-md-6 col-sm-12 mb-4">
-                <div class="module-card h-100">
-                    <div class="card-body">
-                        <div class="d-flex justify-content-between align-items-start mb-3">
-                            <div class="d-flex align-items-center">
-                                <div class="module-icon bg-warning text-white">
-                                    <i class="las la-chalkboard-teacher"></i>
-                                </div>
-                                <div>
-                                    <h5 class="mb-0">Teacher Management</h5>
-                                    <p class="text-muted mb-0">v2.1.5</p>
-                                </div>
-                            </div>
-                            <div>
-                                <span class="module-status active"></span>
-                                <small class="text-success">Active</small>
-                            </div>
-                        </div>
-                        
-                        <p class="text-muted mb-3">Manage teachers, assignments, and timetables</p>
-                        
-                        <div class="d-flex justify-content-between align-items-center mb-3">
-                            <div>
-                                <small class="text-muted">Last Updated: 01 Dec 2024</small>
-                            </div>
-                            <span class="version-badge bg-warning text-white">Standard</span>
-                        </div>
-                        
-                        <div class="btn-group w-100">
-                            <button class="btn btn-sm btn-outline-primary">
-                                <i class="las la-cog mr-1"></i> Settings
-                            </button>
-                            <button class="btn btn-sm btn-outline-success">
-                                <i class="las la-key mr-1"></i> Permissions
-                            </button>
-                            <button class="btn btn-sm btn-outline-warning">
-                                <i class="las la-toggle-on mr-1"></i> Disable
-                            </button>
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Attendance Module -->
-            <div class="col-xl-4 col-lg-6 col-md-6 col-sm-12 mb-4">
-                <div class="module-card h-100">
-                    <div class="card-body">
-                        <div class="d-flex justify-content-between align-items-start mb-3">
-                            <div class="d-flex align-items-center">
-                                <div class="module-icon bg-danger text-white">
-                                    <i class="las la-calendar-check"></i>
-                                </div>
-                                <div>
-                                    <h5 class="mb-0">Attendance</h5>
-                                    <p class="text-muted mb-0">v2.9.0</p>
-                                </div>
-                            </div>
-                            <div>
-                                <span class="module-status active"></span>
-                                <small class="text-success">Active</small>
-                            </div>
-                        </div>
-                        
-                        <p class="text-muted mb-3">Track student and staff attendance</p>
-                        
-                        <div class="d-flex justify-content-between align-items-center mb-3">
-                            <div>
-                                <small class="text-muted">Last Updated: 28 Nov 2024</small>
-                            </div>
-                            <span class="version-badge bg-danger text-white">Premium</span>
-                        </div>
-                        
-                        <div class="btn-group w-100">
-                            <button class="btn btn-sm btn-outline-primary">
-                                <i class="las la-cog mr-1"></i> Settings
-                            </button>
-                            <button class="btn btn-sm btn-outline-success">
-                                <i class="las la-key mr-1"></i> Permissions
-                            </button>
-                            <button class="btn btn-sm btn-outline-warning">
-                                <i class="las la-toggle-on mr-1"></i> Disable
-                            </button>
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Fees Management Module -->
-            <div class="col-xl-4 col-lg-6 col-md-6 col-sm-12 mb-4">
-                <div class="module-card h-100">
-                    <div class="card-body">
-                        <div class="d-flex justify-content-between align-items-start mb-3">
-                            <div class="d-flex align-items-center">
-                                <div class="module-icon bg-secondary text-white">
-                                    <i class="las la-money-bill-wave"></i>
-                                </div>
-                                <div>
-                                    <h5 class="mb-0">Fees Management</h5>
-                                    <p class="text-muted mb-0">v4.0.1</p>
-                                </div>
-                            </div>
-                            <div>
-                                <span class="module-status active"></span>
-                                <small class="text-success">Active</small>
-                            </div>
-                        </div>
-                        
-                        <p class="text-muted mb-3">Manage fees, payments, invoices, and discounts</p>
-                        
-                        <div class="d-flex justify-content-between align-items-center mb-3">
-                            <div>
-                                <small class="text-muted">Last Updated: 25 Nov 2024</small>
-                            </div>
-                            <span class="version-badge bg-secondary text-white">Premium</span>
-                        </div>
-                        
-                        <div class="btn-group w-100">
-                            <button class="btn btn-sm btn-outline-primary">
-                                <i class="las la-cog mr-1"></i> Settings
-                            </button>
-                            <button class="btn btn-sm btn-outline-success">
-                                <i class="las la-key mr-1"></i> Permissions
-                            </button>
-                            <button class="btn btn-sm btn-outline-warning">
-                                <i class="las la-toggle-on mr-1"></i> Disable
-                            </button>
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Exam Management Module (Inactive) -->
-            <div class="col-xl-4 col-lg-6 col-md-6 col-sm-12 mb-4">
-                <div class="module-card h-100">
-                    <div class="card-body">
-                        <div class="d-flex justify-content-between align-items-start mb-3">
-                            <div class="d-flex align-items-center">
-                                <div class="module-icon bg-dark text-white">
-                                    <i class="las la-clipboard-list"></i>
-                                </div>
-                                <div>
-                                    <h5 class="mb-0">Exam Management</h5>
-                                    <p class="text-muted mb-0">v1.5.2</p>
-                                </div>
-                            </div>
-                            <div>
-                                <span class="module-status inactive"></span>
-                                <small class="text-danger">Inactive</small>
-                            </div>
-                        </div>
-                        
-                        <p class="text-muted mb-3">Manage exams, schedules, and results</p>
-                        
-                        <div class="d-flex justify-content-between align-items-center mb-3">
-                            <div>
-                                <small class="text-muted">Last Updated: 20 Nov 2024</small>
-                            </div>
-                            <span class="version-badge bg-dark text-white">Standard</span>
-                        </div>
-                        
-                        <div class="btn-group w-100">
-                            <button class="btn btn-sm btn-outline-primary">
-                                <i class="las la-cog mr-1"></i> Settings
-                            </button>
-                            <button class="btn btn-sm btn-outline-success">
-                                <i class="las la-key mr-1"></i> Permissions
-                            </button>
-                            <button class="btn btn-sm btn-outline-success">
-                                <i class="las la-toggle-off mr-1"></i> Enable
-                            </button>
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Library Management Module -->
-            <div class="col-xl-4 col-lg-6 col-md-6 col-sm-12 mb-4">
-                <div class="module-card h-100">
-                    <div class="card-body">
-                        <div class="d-flex justify-content-between align-items-start mb-3">
-                            <div class="d-flex align-items-center">
-                                <div class="module-icon bg-primary text-white">
-                                    <i class="las la-book"></i>
-                                </div>
-                                <div>
-                                    <h5 class="mb-0">Library Management</h5>
-                                    <p class="text-muted mb-0">v2.3.0</p>
-                                </div>
-                            </div>
-                            <div>
-                                <span class="module-status active"></span>
-                                <small class="text-success">Active</small>
-                            </div>
-                        </div>
-                        
-                        <p class="text-muted mb-3">Manage books, issues, returns, and inventory</p>
-                        
-                        <div class="d-flex justify-content-between align-items-center mb-3">
-                            <div>
-                                <small class="text-muted">Last Updated: 15 Nov 2024</small>
-                            </div>
-                            <span class="version-badge bg-primary text-white">Standard</span>
-                        </div>
-                        
-                        <div class="btn-group w-100">
-                            <button class="btn btn-sm btn-outline-primary">
-                                <i class="las la-cog mr-1"></i> Settings
-                            </button>
-                            <button class="btn btn-sm btn-outline-success">
-                                <i class="las la-key mr-1"></i> Permissions
-                            </button>
-                            <button class="btn btn-sm btn-outline-warning">
-                                <i class="las la-toggle-on mr-1"></i> Disable
-                            </button>
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Transport Module (Inactive) -->
-            <div class="col-xl-4 col-lg-6 col-md-6 col-sm-12 mb-4">
-                <div class="module-card h-100">
-                    <div class="card-body">
-                        <div class="d-flex justify-content-between align-items-start mb-3">
-                            <div class="d-flex align-items-center">
-                                <div class="module-icon bg-success text-white">
-                                    <i class="las la-bus"></i>
-                                </div>
-                                <div>
-                                    <h5 class="mb-0">Transport Management</h5>
-                                    <p class="text-muted mb-0">v1.2.1</p>
-                                </div>
-                            </div>
-                            <div>
-                                <span class="module-status inactive"></span>
-                                <small class="text-danger">Inactive</small>
-                            </div>
-                        </div>
-                        
-                        <p class="text-muted mb-3">Manage vehicles, routes, and transport fees</p>
-                        
-                        <div class="d-flex justify-content-between align-items-center mb-3">
-                            <div>
-                                <small class="text-muted">Last Updated: 10 Nov 2024</small>
-                            </div>
-                            <span class="version-badge bg-success text-white">Add-on</span>
-                        </div>
-                        
-                        <div class="btn-group w-100">
-                            <button class="btn btn-sm btn-outline-primary">
-                                <i class="las la-cog mr-1"></i> Settings
-                            </button>
-                            <button class="btn btn-sm btn-outline-success">
-                                <i class="las la-key mr-1"></i> Permissions
-                            </button>
-                            <button class="btn btn-sm btn-outline-success">
-                                <i class="las la-toggle-off mr-1"></i> Enable
-                            </button>
-                        </div>
-                    </div>
-                </div>
-            </div>
+            @endforeach
         </div>
 
         <!-- Module Permissions -->
@@ -553,147 +259,46 @@
                 <h5 class="card-title mb-0">Module Permissions Configuration</h5>
             </div>
             <div class="card-body">
-                <div class="row">
-                    <div class="col-md-4">
-                        <div class="permission-group">
-                            <h6>User Management</h6>
-                            <div class="form-check mb-2">
-                                <input class="form-check-input" type="checkbox" id="perm1" checked>
-                                <label class="form-check-label" for="perm1">Create Users</label>
-                            </div>
-                            <div class="form-check mb-2">
-                                <input class="form-check-input" type="checkbox" id="perm2" checked>
-                                <label class="form-check-label" for="perm2">Edit Users</label>
-                            </div>
-                            <div class="form-check mb-2">
-                                <input class="form-check-input" type="checkbox" id="perm3" checked>
-                                <label class="form-check-label" for="perm3">Delete Users</label>
-                            </div>
-                            <div class="form-check mb-2">
-                                <input class="form-check-input" type="checkbox" id="perm4" checked>
-                                <label class="form-check-label" for="perm4">Manage Roles</label>
+                <form id="permissionsForm" action="{{ route('modules.update-permissions') }}" method="POST">
+                    @csrf
+                    <div class="row">
+                        @foreach($modules as $module)
+                        @php
+                            $permissions = $module->permission_list;
+                            $moduleColor = $module->is_core ? 'primary' : 'secondary';
+                        @endphp
+                        @if(!empty($permissions))
+                        <div class="col-md-4 mb-4">
+                            <div class="permission-group">
+                                <h6 class="mb-3">{{ $module->name }}</h6>
+                                @foreach($permissions as $permission)
+                                @php
+                                    $permissionId = 'perm_' . $module->id . '_' . \Illuminate\Support\Str::slug($permission);
+                                @endphp
+                                <div class="form-check mb-2">
+                                    <input class="form-check-input permission-checkbox" 
+                                           type="checkbox" 
+                                           id="{{ $permissionId }}"
+                                           name="permissions[{{ $module->id }}][]"
+                                           value="{{ $permission }}"
+                                           {{ in_array($permission, $assignedPermissions[$module->id] ?? []) ? 'checked' : '' }}>
+                                    <label class="form-check-label" for="{{ $permissionId }}">
+                                        {{ ucwords(str_replace('_', ' ', $permission)) }}
+                                    </label>
+                                </div>
+                                @endforeach
                             </div>
                         </div>
+                        @endif
+                        @endforeach
                     </div>
                     
-                    <div class="col-md-4">
-                        <div class="permission-group">
-                            <h6>Academic Management</h6>
-                            <div class="form-check mb-2">
-                                <input class="form-check-input" type="checkbox" id="perm5" checked>
-                                <label class="form-check-label" for="perm5">Create Classes</label>
-                            </div>
-                            <div class="form-check mb-2">
-                                <input class="form-check-input" type="checkbox" id="perm6" checked>
-                                <label class="form-check-label" for="perm6">Manage Sections</label>
-                            </div>
-                            <div class="form-check mb-2">
-                                <input class="form-check-input" type="checkbox" id="perm7" checked>
-                                <label class="form-check-label" for="perm7">Create Subjects</label>
-                            </div>
-                            <div class="form-check mb-2">
-                                <input class="form-check-input" type="checkbox" id="perm8" checked>
-                                <label class="form-check-label" for="perm8">Assign Teachers</label>
-                            </div>
-                        </div>
+                    <div class="text-center mt-4">
+                        <button type="submit" class="btn btn-primary" id="savePermissions">
+                            <i class="las la-save mr-2"></i> Save Permission Settings
+                        </button>
                     </div>
-                    
-                    <div class="col-md-4">
-                        <div class="permission-group">
-                            <h6>Student Management</h6>
-                            <div class="form-check mb-2">
-                                <input class="form-check-input" type="checkbox" id="perm9" checked>
-                                <label class="form-check-label" for="perm9">Admit Students</label>
-                            </div>
-                            <div class="form-check mb-2">
-                                <input class="form-check-input" type="checkbox" id="perm10" checked>
-                                <label class="form-check-label" for="perm10">Edit Student Info</label>
-                            </div>
-                            <div class="form-check mb-2">
-                                <input class="form-check-input" type="checkbox" id="perm11" checked>
-                                <label class="form-check-label" for="perm11">View Reports</label>
-                            </div>
-                            <div class="form-check mb-2">
-                                <input class="form-check-input" type="checkbox" id="perm12" checked>
-                                <label class="form-check-label" for="perm12">Export Data</label>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-                
-                <div class="row mt-3">
-                    <div class="col-md-4">
-                        <div class="permission-group">
-                            <h6>Fees Management</h6>
-                            <div class="form-check mb-2">
-                                <input class="form-check-input" type="checkbox" id="perm13" checked>
-                                <label class="form-check-label" for="perm13">Create Invoices</label>
-                            </div>
-                            <div class="form-check mb-2">
-                                <input class="form-check-input" type="checkbox" id="perm14" checked>
-                                <label class="form-check-label" for="perm14">Receive Payments</label>
-                            </div>
-                            <div class="form-check mb-2">
-                                <input class="form-check-input" type="checkbox" id="perm15" checked>
-                                <label class="form-check-label" for="perm15">Grant Discounts</label>
-                            </div>
-                            <div class="form-check mb-2">
-                                <input class="form-check-input" type="checkbox" id="perm16" checked>
-                                <label class="form-check-label" for="perm16">View Reports</label>
-                            </div>
-                        </div>
-                    </div>
-                    
-                    <div class="col-md-4">
-                        <div class="permission-group">
-                            <h6>Attendance Management</h6>
-                            <div class="form-check mb-2">
-                                <input class="form-check-input" type="checkbox" id="perm17" checked>
-                                <label class="form-check-label" for="perm17">Take Attendance</label>
-                            </div>
-                            <div class="form-check mb-2">
-                                <input class="form-check-input" type="checkbox" id="perm18" checked>
-                                <label class="form-check-label" for="perm18">View Reports</label>
-                            </div>
-                            <div class="form-check mb-2">
-                                <input class="form-check-input" type="checkbox" id="perm19" checked>
-                                <label class="form-check-label" for="perm19">Send SMS Alerts</label>
-                            </div>
-                            <div class="form-check mb-2">
-                                <input class="form-check-input" type="checkbox" id="perm20" checked>
-                                <label class="form-check-label" for="perm20">Export Data</label>
-                            </div>
-                        </div>
-                    </div>
-                    
-                    <div class="col-md-4">
-                        <div class="permission-group">
-                            <h6>Teacher Management</h6>
-                            <div class="form-check mb-2">
-                                <input class="form-check-input" type="checkbox" id="perm21" checked>
-                                <label class="form-check-label" for="perm21">Add Teachers</label>
-                            </div>
-                            <div class="form-check mb-2">
-                                <input class="form-check-input" type="checkbox" id="perm22" checked>
-                                <label class="form-check-label" for="perm22">Assign Subjects</label>
-                            </div>
-                            <div class="form-check mb-2">
-                                <input class="form-check-input" type="checkbox" id="perm23" checked>
-                                <label class="form-check-label" for="perm23">Manage Timetable</label>
-                            </div>
-                            <div class="form-check mb-2">
-                                <input class="form-check-input" type="checkbox" id="perm24" checked>
-                                <label class="form-check-label" for="perm24">View Profiles</label>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-                
-                <div class="text-center mt-4">
-                    <button class="btn btn-primary">
-                        <i class="las la-save mr-2"></i> Save Permission Settings
-                    </button>
-                </div>
+                </form>
             </div>
         </div>
 
@@ -724,7 +329,7 @@
                             </tr>
                             <tr>
                                 <th>PHP Version</th>
-                                <td>8.2.12</td>
+                                <td>{{ phpversion() }}</td>
                             </tr>
                         </table>
                     </div>
@@ -732,7 +337,7 @@
                         <table class="table table-bordered">
                             <tr>
                                 <th width="40%">Laravel Version</th>
-                                <td>10.10.0</td>
+                                <td>{{ app()->version() }}</td>
                             </tr>
                             <tr>
                                 <th>Database</th>
@@ -740,15 +345,15 @@
                             </tr>
                             <tr>
                                 <th>Server OS</th>
-                                <td>Ubuntu 22.04</td>
+                                <td>{{ php_uname('s') }}</td>
                             </tr>
                             <tr>
                                 <th>Last Backup</th>
                                 <td class="text-warning">24 Dec 2024 02:30 AM</td>
                             </tr>
                             <tr>
-                                <th>Next Update</th>
-                                <td class="text-info">15 Jan 2025</td>
+                                <th>Modules Count</th>
+                                <td class="text-info">{{ $modules->count() }}</td>
                             </tr>
                         </table>
                     </div>
@@ -772,16 +377,28 @@
                         <span>&times;</span>
                     </button>
                 </div>
-                <div class="modal-body">
-                    <form id="installModuleForm">
+                <form action="{{ route('modules.install') }}" method="POST" enctype="multipart/form-data">
+                    @csrf
+                    <div class="modal-body">
                         <div class="row">
                             <div class="col-md-6">
                                 <div class="form-group">
+                                    <label>Module Code *</label>
+                                    <input type="text" class="form-control" name="code" placeholder="e.g., user_management" required>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="form-group">
+                                    <label>Module Name *</label>
+                                    <input type="text" class="form-control" name="name" placeholder="e.g., User Management" required>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="form-group">
                                     <label>Module Type</label>
-                                    <select class="form-control">
-                                        <option value="">Select Module Type</option>
+                                    <select class="form-control" name="type">
+                                        <option value="module">Standard Module</option>
                                         <option value="core">Core Module</option>
-                                        <option value="standard">Standard Module</option>
                                         <option value="premium">Premium Module</option>
                                         <option value="addon">Add-on Module</option>
                                         <option value="plugin">Plugin</option>
@@ -792,65 +409,95 @@
                                 <div class="form-group">
                                     <label>Upload Module File</label>
                                     <div class="custom-file">
-                                        <input type="file" class="custom-file-input" id="moduleFile">
+                                        <input type="file" class="custom-file-input" name="module_file" id="moduleFile">
                                         <label class="custom-file-label" for="moduleFile">Choose .zip file</label>
                                     </div>
                                     <small class="form-text text-muted">Upload module zip file (max 50MB)</small>
                                 </div>
                             </div>
-                            <div class="col-md-12">
+                            <div class="col-md-6">
                                 <div class="form-group">
-                                    <label>Module Name</label>
-                                    <input type="text" class="form-control" placeholder="Enter module name">
+                                    <label>Icon Class</label>
+                                    <input type="text" class="form-control" name="icon" placeholder="las la-cube" value="las la-cube">
                                 </div>
                             </div>
                             <div class="col-md-6">
                                 <div class="form-group">
-                                    <label>Version</label>
-                                    <input type="text" class="form-control" placeholder="e.g., 1.0.0">
-                                </div>
-                            </div>
-                            <div class="col-md-6">
-                                <div class="form-group">
-                                    <label>Author</label>
-                                    <input type="text" class="form-control" placeholder="Author name">
+                                    <label>Default Route</label>
+                                    <input type="text" class="form-control" name="route" placeholder="e.g., users.index">
                                 </div>
                             </div>
                             <div class="col-md-12">
                                 <div class="form-group">
                                     <label>Description</label>
-                                    <textarea class="form-control" rows="3" placeholder="Module description"></textarea>
+                                    <textarea class="form-control" name="description" rows="3" placeholder="Module description"></textarea>
+                                </div>
+                            </div>
+                            <div class="col-md-12">
+                                <div class="form-group">
+                                    <label>Permissions (one per line)</label>
+                                    <textarea class="form-control" name="permissions" rows="4" placeholder="create_users
+                                        edit_users
+                                        delete_users
+                                        view_users"></textarea>
                                 </div>
                             </div>
                             <div class="col-md-12">
                                 <div class="form-group">
                                     <div class="custom-control custom-switch">
-                                        <input type="checkbox" class="custom-control-input" id="autoEnable" checked>
-                                        <label class="custom-control-label" for="autoEnable">
+                                        <input type="checkbox" class="custom-control-input" name="is_core" id="isCore">
+                                        <label class="custom-control-label" for="isCore">
+                                            Core Module (Cannot be disabled)
+                                        </label>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-md-12">
+                                <div class="form-group">
+                                    <div class="custom-control custom-switch">
+                                        <input type="checkbox" class="custom-control-input" name="is_active" id="isActive" checked>
+                                        <label class="custom-control-label" for="isActive">
                                             Enable after installation
                                         </label>
                                     </div>
                                 </div>
                             </div>
-                            <div class="col-md-12">
-                                <div class="form-group">
-                                    <div class="custom-control custom-switch">
-                                        <input type="checkbox" class="custom-control-input" id="createPermissions">
-                                        <label class="custom-control-label" for="createPermissions">
-                                            Create default permissions
-                                        </label>
-                                    </div>
-                                </div>
-                            </div>
                         </div>
-                    </form>
-                </div>
-                <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancel</button>
-                    <button type="button" class="btn btn-primary" id="installModule">
-                        <i class="las la-download mr-2"></i> Install Module
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancel</button>
+                        <button type="submit" class="btn btn-primary" id="installModuleBtn">
+                            <i class="las la-download mr-2"></i> Install Module
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- Module Settings Modal -->
+    <div class="modal fade" id="moduleSettingsModal" tabindex="-1" role="dialog">
+        <div class="modal-dialog" role="document">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Module Settings</h5>
+                    <button type="button" class="close" data-dismiss="modal">
+                        <span>&times;</span>
                     </button>
                 </div>
+                <form id="moduleSettingsForm" method="POST">
+                    @csrf
+                    @method('PUT')
+                    <div class="modal-body">
+                        <div id="moduleSettingsContent">
+                            <!-- Content loaded via AJAX -->
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+                        <button type="submit" class="btn btn-primary">Save Settings</button>
+                    </div>
+                </form>
             </div>
         </div>
     </div>
@@ -862,59 +509,221 @@
     <!-- Module Settings Script -->
     <script>
         $(document).ready(function() {
+            // CSRF token for AJAX requests
+            $.ajaxSetup({
+                headers: {
+                    'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
+                }
+            });
+
             // File input label
             $('.custom-file-input').on('change', function() {
                 let fileName = $(this).val().split('\\').pop();
                 $(this).next('.custom-file-label').addClass("selected").html(fileName);
             });
-            
-            // Install module
-            $('#installModule').click(function() {
+
+            // Toggle module status
+            $('.toggle-module').on('click', function() {
                 const btn = $(this);
-                const originalText = btn.html();
-                btn.html('<i class="las la-spinner la-spin mr-2"></i>Installing...').prop('disabled', true);
-                
-                setTimeout(function() {
-                    btn.html(originalText).prop('disabled', false);
-                    $('#installModuleModal').modal('hide');
-                    alert('Module installed successfully! Please check the modules list.');
-                }, 2000);
-            });
-            
-            // Enable/Disable module
-            $('.btn-group .btn').on('click', function() {
-                const btn = $(this);
+                const moduleId = btn.data('module-id');
+                const action = btn.data('action');
                 const card = btn.closest('.module-card');
                 const statusSpan = card.find('.module-status');
                 const statusText = card.find('.text-success, .text-danger');
                 
-                if (btn.text().includes('Enable')) {
-                    statusSpan.removeClass('inactive').addClass('active');
-                    statusText.removeClass('text-danger').addClass('text-success').text('Active');
-                    btn.html('<i class="las la-toggle-on mr-1"></i> Disable').removeClass('btn-outline-success').addClass('btn-outline-warning');
-                    alert('Module enabled successfully!');
-                } else if (btn.text().includes('Disable')) {
-                    statusSpan.removeClass('active').addClass('inactive');
-                    statusText.removeClass('text-success').addClass('text-danger').text('Inactive');
-                    btn.html('<i class="las la-toggle-off mr-1"></i> Enable').removeClass('btn-outline-warning').addClass('btn-outline-success');
-                    alert('Module disabled successfully!');
-                } else if (btn.text().includes('Settings')) {
-                    alert('Opening module settings...');
-                } else if (btn.text().includes('Permissions')) {
-                    alert('Opening permission settings...');
-                }
+                const originalText = btn.html();
+                btn.html('<i class="las la-spinner la-spin mr-1"></i> Processing...').prop('disabled', true);
+                
+                $.ajax({
+                    url: '{{ route("modules.toggle") }}',
+                    method: 'POST',
+                    data: {
+                        module_id: moduleId,
+                        action: action
+                    },
+                    success: function(response) {
+                        if (response.success) {
+                            if (action === 'disable') {
+                                statusSpan.removeClass('active').addClass('inactive');
+                                statusText.removeClass('text-success').addClass('text-danger').text('Inactive');
+                                btn.html('<i class="las la-toggle-off mr-1"></i> Enable')
+                                    .removeClass('btn-outline-warning').addClass('btn-outline-success')
+                                    .data('action', 'enable');
+                            } else {
+                                statusSpan.removeClass('inactive').addClass('active');
+                                statusText.removeClass('text-danger').addClass('text-success').text('Active');
+                                btn.html('<i class="las la-toggle-on mr-1"></i> Disable')
+                                    .removeClass('btn-outline-success').addClass('btn-outline-warning')
+                                    .data('action', 'disable');
+                            }
+                            
+                            // Show success message
+                            showToast(response.message, 'success');
+                        }
+                    },
+                    error: function(xhr) {
+                        btn.html(originalText).prop('disabled', false);
+                        showToast('Error: ' + xhr.responseJSON?.message || 'Something went wrong', 'error');
+                    },
+                    complete: function() {
+                        btn.prop('disabled', false);
+                    }
+                });
             });
-            
-            // Save permissions
-            $('.btn-primary').last().click(function() {
+
+            // Module settings
+            $('.module-settings').on('click', function() {
+                const moduleId = $(this).data('module-id');
+                
+                $.ajax({
+                    url: '{{ route("modules.settings") }}',
+                    method: 'GET',
+                    data: { module_id: moduleId },
+                    success: function(response) {
+                        $('#moduleSettingsContent').html(response.html);
+                        $('#moduleSettingsForm').attr('action', response.updateUrl);
+                        $('#moduleSettingsModal').modal('show');
+                    },
+                    error: function() {
+                        showToast('Failed to load module settings', 'error');
+                    }
+                });
+            });
+
+            // Module permissions
+            $('.module-permissions').on('click', function() {
+                const moduleId = $(this).data('module-id');
+                const permissionsSection = $('#permissionsForm');
+                
+                // Scroll to permissions section
+                $('html, body').animate({
+                    scrollTop: permissionsSection.offset().top - 100
+                }, 500);
+                
+                // Highlight the module's permissions
+                $('.permission-group').removeClass('border-primary');
+                $('.permission-group h6').each(function() {
+                    if ($(this).text().includes(moduleId)) {
+                        $(this).closest('.permission-group').addClass('border-primary');
+                    }
+                });
+            });
+
+            // Save module settings
+            $('#moduleSettingsForm').on('submit', function(e) {
+                e.preventDefault();
+                
+                const form = $(this);
+                const submitBtn = form.find('button[type="submit"]');
+                const originalText = submitBtn.html();
+                submitBtn.html('<i class="las la-spinner la-spin mr-2"></i>Saving...').prop('disabled', true);
+                
+                $.ajax({
+                    url: form.attr('action'),
+                    method: form.attr('method'),
+                    data: form.serialize(),
+                    success: function(response) {
+                        showToast(response.message, 'success');
+                        $('#moduleSettingsModal').modal('hide');
+                    },
+                    error: function(xhr) {
+                        showToast('Error: ' + xhr.responseJSON?.message || 'Failed to save settings', 'error');
+                    },
+                    complete: function() {
+                        submitBtn.html(originalText).prop('disabled', false);
+                    }
+                });
+            });
+
+            // Save all permissions
+            $('#savePermissions').on('click', function(e) {
+                e.preventDefault();
+                
                 const btn = $(this);
                 const originalText = btn.html();
                 btn.html('<i class="las la-spinner la-spin mr-2"></i>Saving...').prop('disabled', true);
                 
+                $.ajax({
+                    url: $('#permissionsForm').attr('action'),
+                    method: 'POST',
+                    data: $('#permissionsForm').serialize(),
+                    success: function(response) {
+                        showToast(response.message, 'success');
+                    },
+                    error: function(xhr) {
+                        showToast('Error: ' + xhr.responseJSON?.message || 'Failed to save permissions', 'error');
+                    },
+                    complete: function() {
+                        btn.html(originalText).prop('disabled', false);
+                    }
+                });
+            });
+
+            // Install module
+            $('#installModuleBtn').on('click', function(e) {
+                const btn = $(this);
+                const originalText = btn.html();
+                btn.html('<i class="las la-spinner la-spin mr-2"></i>Installing...').prop('disabled', true);
+                
+                // The form will handle submission, this just changes the button state
                 setTimeout(function() {
                     btn.html(originalText).prop('disabled', false);
-                    alert('Permission settings saved successfully!');
-                }, 1500);
+                }, 3000);
+            });
+
+            // Toast notification function
+            function showToast(message, type = 'success') {
+                const toast = $(`
+                    <div class="toast align-items-center text-white bg-${type === 'success' ? 'success' : 'danger'} border-0 position-fixed bottom-0 end-0 m-3" role="alert" aria-live="assertive" aria-atomic="true">
+                        <div class="d-flex">
+                            <div class="toast-body">
+                                ${message}
+                            </div>
+                            <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast"></button>
+                        </div>
+                    </div>
+                `);
+                
+                $('body').append(toast);
+                const bsToast = new bootstrap.Toast(toast[0]);
+                bsToast.show();
+                
+                toast.on('hidden.bs.toast', function() {
+                    $(this).remove();
+                });
+            }
+
+            // Bulk select/deselect for module permissions
+            $('.permission-group h6').each(function() {
+                const group = $(this).closest('.permission-group');
+                const checkboxes = group.find('.permission-checkbox');
+                const allChecked = checkboxes.length === checkboxes.filter(':checked').length;
+                
+                $(this).append(`
+                    <small class="float-right">
+                        <a href="#" class="text-primary select-all">Select All</a>
+                    </small>
+                `);
+                
+                if (allChecked) {
+                    group.find('.select-all').text('Deselect All');
+                }
+            });
+
+            // Toggle select all for module permissions
+            $(document).on('click', '.select-all', function(e) {
+                e.preventDefault();
+                const group = $(this).closest('.permission-group');
+                const checkboxes = group.find('.permission-checkbox');
+                const allChecked = checkboxes.length === checkboxes.filter(':checked').length;
+                
+                if (allChecked) {
+                    checkboxes.prop('checked', false);
+                    $(this).text('Select All');
+                } else {
+                    checkboxes.prop('checked', true);
+                    $(this).text('Deselect All');
+                }
             });
         });
     </script>
