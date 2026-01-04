@@ -60,8 +60,8 @@
             <div class="form-group">
                 <label for="module_status">Module Status for Your School</label>
                 <select class="form-control" id="module_status" name="settings[is_active]" {{ $module->is_core ? 'disabled' : '' }}>
-                    <option value="1" {{ $currentSettings['is_active'] ? 'selected' : '' }}>Active</option>
-                    <option value="0" {{ !$currentSettings['is_active'] ? 'selected' : '' }}>Inactive</option>
+                    <option value="1" {{ $schoolModule->is_active ? 'selected' : '' }}>Active</option>
+                    <option value="0" {{ !$schoolModule->is_active ? 'selected' : '' }}>Inactive</option>
                 </select>
                 @if($module->is_core)
                 <small class="form-text text-muted">Core modules cannot be disabled</small>

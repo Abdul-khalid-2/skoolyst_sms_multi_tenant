@@ -116,13 +116,15 @@ class ModuleController extends Controller
     public function updateSettings(Request $request, $id)
     {
         $request->validate([
-            'settings' => 'nullable|array'
+            'settings' => 'required|array',
+            'settings.is_active' => 'required|boolean',
         ]);
 
         $schoolModule = SchoolModule::where([
             'school_id' => auth()->user()->school_id,
-            'module_id' => $id
+            'module_id' => $id,
         ])->firstOrFail();
+        $schoolModule->is_active = $request->settings['is_active'];
 
         $schoolModule->settings = $request->settings;
         $schoolModule->save();

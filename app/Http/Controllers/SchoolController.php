@@ -10,6 +10,8 @@ use App\Http\Requests\UpdateSchoolRequest;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
+use Spatie\Permission\Models\Role;
+use Illuminate\Support\Facades\Hash;
 
 class SchoolController extends Controller
 {
@@ -82,7 +84,7 @@ class SchoolController extends Controller
             $school = School::create($validatedData);
 
             // Create default branch
-            Branch::create([
+            $branch = Branch::create([
                 'school_id' => $school->id,
                 'name' => 'Main Campus',
                 'phone' => $school->phone,
@@ -90,13 +92,184 @@ class SchoolController extends Controller
                 'status' => 'active'
             ]);
 
+            // ======================================
+            // NEW CODE: Create School Admin User
+            // ======================================
+
+            // Check if email already exists in users table
+            $existingUser = User::where('email', $school->email)->first();
+
+            if ($existingUser) {
+                // Email already exists, update the user with school info
+                $existingUser->update([
+                    'school_id' => $school->id,
+                    'branch_id' => $branch->id,
+                    'name' => 'School Admin - ' . $school->name,
+                    'status' => 'active'
+                ]);
+                $user = $existingUser;
+            } else {
+                // Create new admin user
+                $user = User::create([
+                    'name' => 'School Admin - ' . $school->name,
+                    'email' => $school->email,
+                    'password' => Hash::make('password123'), // Default password
+                    'school_id' => $school->id,
+                    'branch_id' => $branch->id,
+                    'phone' => $school->phone,
+                    'address' => $school->address,
+                    'status' => 'active'
+                ]);
+            }
+
+            // Create school-specific roles if they don't exist
+            $this->createSchoolRoles($school->id);
+
+            // Assign school admin role to the user
+            $schoolAdminRole = Role::where('name', "school_{$school->id}_admin")->first();
+            if ($schoolAdminRole) {
+                $user->assignRole($schoolAdminRole);
+            }
+
+            // Remove any existing roles (clean slate)
+            $user->roles()->sync([]);
+            $user->assignRole($schoolAdminRole);
+
             return redirect()->route('schools.index')
-                ->with('success', 'School created successfully!');
+                ->with('success', 'School created successfully! School admin user has been created with default password: password123');
         } catch (\Exception $e) {
             return redirect()->back()
                 ->withInput()
                 ->with('error', 'Error creating school: ' . $e->getMessage());
         }
+    }
+
+    /**
+     * Create school-specific roles
+     */
+    private function createSchoolRoles(int $schoolId): void
+    {
+        $schoolPrefix = "school_{$schoolId}_";
+
+        // Check if roles already exist
+        $existingAdminRole = Role::where('name', $schoolPrefix . 'admin')->first();
+        if ($existingAdminRole) {
+            return; // Roles already exist, skip creation
+        }
+
+        // School Admin Role
+        $schoolAdminRole = Role::create([
+            'name' => $schoolPrefix . 'admin',
+            'guard_name' => 'web',
+        ]);
+
+        $schoolAdminPermissions = [
+            'view_dashboard',
+            'view_users',
+            'create_users',
+            'edit_users',
+            'view_roles',
+            'assign_roles',
+            'view_branches',
+            'create_branches',
+            'edit_branches',
+            'view_students',
+            'create_students',
+            'edit_students',
+            'view_teachers',
+            'create_teachers',
+            'edit_teachers',
+            'view_attendance',
+            'mark_attendance',
+            'view_fees',
+            'create_fees',
+            'collect_fees',
+            'view_exams',
+            'create_exams',
+            'publish_results',
+            'view_classes',
+            'create_classes',
+            'edit_classes',
+            'view_subjects',
+            'create_subjects',
+            'edit_subjects',
+            'view_reports',
+            'generate_reports',
+            'manage_settings',
+        ];
+        $schoolAdminRole->givePermissionTo($schoolAdminPermissions);
+
+        // Teacher Role
+        $teacherRole = Role::create([
+            'name' => $schoolPrefix . 'teacher',
+            'guard_name' => 'web',
+        ]);
+        $teacherPermissions = [
+            'view_dashboard',
+            'view_students',
+            'view_attendance',
+            'mark_attendance',
+            'view_exams',
+            'view_classes',
+            'view_subjects',
+        ];
+        $teacherRole->givePermissionTo($teacherPermissions);
+
+        // Student Role
+        $studentRole = Role::create([
+            'name' => $schoolPrefix . 'student',
+            'guard_name' => 'web',
+        ]);
+        $studentPermissions = [
+            'view_dashboard',
+            'view_attendance',
+            'view_fees',
+            'view_exams',
+        ];
+        $studentRole->givePermissionTo($studentPermissions);
+
+        // Parent Role
+        $parentRole = Role::create([
+            'name' => $schoolPrefix . 'parent',
+            'guard_name' => 'web',
+        ]);
+        $parentPermissions = [
+            'view_dashboard',
+            'view_attendance',
+            'view_fees',
+            'view_exams',
+        ];
+        $parentRole->givePermissionTo($parentPermissions);
+
+        // Accountant Role
+        $accountantRole = Role::create([
+            'name' => $schoolPrefix . 'accountant',
+            'guard_name' => 'web',
+        ]);
+        $accountantPermissions = [
+            'view_dashboard',
+            'view_fees',
+            'create_fees',
+            'collect_fees',
+            'view_reports',
+            'generate_reports',
+        ];
+        $accountantRole->givePermissionTo($accountantPermissions);
+
+        // Receptionist Role
+        $receptionistRole = Role::create([
+            'name' => $schoolPrefix . 'receptionist',
+            'guard_name' => 'web',
+        ]);
+        $receptionistPermissions = [
+            'view_dashboard',
+            'view_students',
+            'create_students',
+            'view_attendance',
+            'view_fees',
+            'collect_fees',
+        ];
+        $receptionistRole->givePermissionTo($receptionistPermissions);
     }
 
 
@@ -167,8 +340,54 @@ class SchoolController extends Controller
 
             $school->update($validatedData);
 
+            // Handle admin account update/creation
+            $adminUser = $school->users()->whereHas('roles', function ($q) use ($school) {
+                $q->where('name', 'school_' . $school->id . '_admin');
+            })->first();
+
+            if ($adminUser) {
+                // Update existing admin
+                $adminData = [
+                    'name' => $request->input('admin_name'),
+                    'email' => $request->input('admin_email'),
+                    'status' => $request->input('admin_status', $adminUser->status),
+                    'phone' => $request->input('admin_phone', $adminUser->phone),
+                    'address' => $school->address,
+                ];
+
+                // Update password if provided
+                if ($request->filled('admin_password')) {
+                    $adminData['password'] = Hash::make($request->input('admin_password'));
+                }
+
+                $adminUser->update($adminData);
+            } else {
+                // Create new admin if doesn't exist
+                $branch = $school->branches()->first();
+
+                $newAdmin = User::create([
+                    'name' => $request->input('admin_name'),
+                    'email' => $request->input('admin_email'),
+                    'password' => Hash::make($request->input('admin_password')),
+                    'school_id' => $school->id,
+                    'branch_id' => $branch ? $branch->id : null,
+                    'phone' => $request->input('admin_phone', $school->phone),
+                    'address' => $school->address,
+                    'status' => 'active'
+                ]);
+
+                // Create roles if they don't exist
+                $this->createSchoolRoles($school->id);
+
+                // Assign admin role
+                $schoolAdminRole = Role::where('name', "school_{$school->id}_admin")->first();
+                if ($schoolAdminRole) {
+                    $newAdmin->assignRole($schoolAdminRole);
+                }
+            }
+
             return redirect()->route('schools.index')
-                ->with('success', 'School updated successfully!');
+                ->with('success', 'School and admin account updated successfully!');
         } catch (\Exception $e) {
             return back()
                 ->withInput()

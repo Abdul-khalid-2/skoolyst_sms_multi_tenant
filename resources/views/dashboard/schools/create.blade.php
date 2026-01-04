@@ -46,10 +46,29 @@
                                     <div class="form-group">
                                         <label>Email Address *</label>
                                         <input type="email" name="email" class="form-control @error('email') is-invalid @enderror" 
-                                               placeholder="Enter school email" value="{{ old('email') }}" required>
+                                            placeholder="Enter school email (will be used for admin login)" value="{{ old('email') }}" required>
                                         @error('email')
                                             <div class="invalid-feedback">{{ $message }}</div>
                                         @enderror
+                                        <small class="form-text text-muted">
+                                            This email will be used as the school admin login
+                                        </small>
+                                    </div>
+                                </div>
+                                
+                                <!-- School Admin Information -->
+                                <div class="col-md-12">
+                                    <h5 class="mb-3 text-primary">
+                                        <i class="las la-user-shield mr-2"></i> School Admin Account
+                                    </h5>
+                                    <div class="alert alert-info">
+                                        <strong>Note:</strong> A school admin account will be automatically created with:
+                                        <ul class="mb-0 mt-2">
+                                            <li>Email: The school email provided above</li>
+                                            <li>Default Password: <code>password123</code></li>
+                                            <li>Name: "School Admin - [School Name]"</li>
+                                            <li>Role: School Administrator with full permissions</li>
+                                        </ul>
                                     </div>
                                 </div>
                                 
@@ -110,7 +129,7 @@
                             <div class="row mt-4">
                                 <div class="col-md-12">
                                     <button type="submit" class="btn btn-primary mr-2">
-                                        <i class="las la-save mr-2"></i> Save School
+                                        <i class="las la-save mr-2"></i> Save School & Create Admin Account
                                     </button>
                                     <button type="reset" class="btn btn-danger">
                                         <i class="las la-redo mr-2"></i> Reset

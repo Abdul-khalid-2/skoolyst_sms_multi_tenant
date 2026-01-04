@@ -45,7 +45,7 @@
                                 
                                 <div class="col-md-6">
                                     <div class="form-group">
-                                        <label>Email Address *</label>
+                                        <label>School Email *</label>
                                         <input type="email" name="email" class="form-control @error('email') is-invalid @enderror" 
                                                placeholder="Enter school email" value="{{ old('email', $school->email) }}" required>
                                         @error('email')
@@ -119,10 +119,172 @@
                                 </div>
                             </div>
                             
+                            <!-- Admin Account Information -->
+                            <div class="row mt-4">
+                                <div class="col-md-12">
+                                    <h5 class="mb-3 text-primary">
+                                        <i class="las la-user-shield mr-2"></i> School Admin Account
+                                    </h5>
+                                </div>
+                                
+                                @php
+                                    $adminUser = $school->users()->whereHas('roles', function($q) use ($school) {
+                                        $q->where('name', 'school_' . $school->id . '_admin');
+                                    })->first();
+                                @endphp
+                                
+                                @if($adminUser)
+                                    <div class="col-md-6">
+                                        <div class="form-group">
+                                            <label>Admin Name *</label>
+                                            <input type="text" name="admin_name" class="form-control @error('admin_name') is-invalid @enderror" 
+                                                   placeholder="Enter admin name" value="{{ old('admin_name', $adminUser->name) }}" required>
+                                            @error('admin_name')
+                                                <div class="invalid-feedback">{{ $message }}</div>
+                                            @enderror
+                                        </div>
+                                    </div>
+                                    
+                                    <div class="col-md-6">
+                                        <div class="form-group">
+                                            <label>Admin Email *</label>
+                                            <input type="email" name="admin_email" class="form-control @error('admin_email') is-invalid @enderror" 
+                                                   placeholder="Enter admin email" value="{{ old('admin_email', $adminUser->email) }}" required>
+                                            @error('admin_email')
+                                                <div class="invalid-feedback">{{ $message }}</div>
+                                            @enderror
+                                        </div>
+                                    </div>
+                                    
+                                    <div class="col-md-6">
+                                        <div class="form-group">
+                                            <label>Admin Status</label>
+                                            <select name="admin_status" class="form-control @error('admin_status') is-invalid @enderror">
+                                                <option value="active" {{ old('admin_status', $adminUser->status) == 'active' ? 'selected' : '' }}>Active</option>
+                                                <option value="inactive" {{ old('admin_status', $adminUser->status) == 'inactive' ? 'selected' : '' }}>Inactive</option>
+                                            </select>
+                                            @error('admin_status')
+                                                <div class="invalid-feedback">{{ $message }}</div>
+                                            @enderror
+                                        </div>
+                                    </div>
+                                    
+                                    <div class="col-md-6">
+                                        <div class="form-group">
+                                            <label>Admin Phone</label>
+                                            <input type="text" name="admin_phone" class="form-control @error('admin_phone') is-invalid @enderror" 
+                                                   placeholder="Enter admin phone" value="{{ old('admin_phone', $adminUser->phone) }}">
+                                            @error('admin_phone')
+                                                <div class="invalid-feedback">{{ $message }}</div>
+                                            @enderror
+                                        </div>
+                                    </div>
+                                    
+                                    <div class="col-md-12">
+                                        <div class="form-group">
+                                            <label>Change Password (Optional)</label>
+                                            <div class="input-group">
+                                                <input type="password" name="admin_password" class="form-control @error('admin_password') is-invalid @enderror" 
+                                                       placeholder="Enter new password (leave empty to keep current)">
+                                                <div class="input-group-append">
+                                                    <button class="btn btn-outline-secondary" type="button" id="togglePassword">
+                                                        <i class="las la-eye"></i>
+                                                    </button>
+                                                </div>
+                                                @error('admin_password')
+                                                    <div class="invalid-feedback">{{ $message }}</div>
+                                                @enderror
+                                            </div>
+                                            <small class="form-text text-muted">
+                                                Leave empty to keep current password. Minimum 8 characters.
+                                            </small>
+                                        </div>
+                                    </div>
+                                    
+                                    <div class="col-md-12">
+                                        <div class="form-group">
+                                            <label>Confirm Password</label>
+                                            <input type="password" name="admin_password_confirmation" class="form-control" 
+                                                   placeholder="Confirm new password">
+                                        </div>
+                                    </div>
+                                    
+                                @else
+                                    <div class="col-md-12 mb-3">
+                                        <div class="alert alert-warning">
+                                            <strong>No admin account found for this school.</strong>
+                                            <p class="mb-0 mt-2">Create a new admin account:</p>
+                                        </div>
+                                    </div>
+                                    
+                                    <div class="col-md-6">
+                                        <div class="form-group">
+                                            <label>Admin Name *</label>
+                                            <input type="text" name="admin_name" class="form-control @error('admin_name') is-invalid @enderror" 
+                                                   placeholder="Enter admin name" value="{{ old('admin_name', 'School Admin - ' . $school->name) }}" required>
+                                            @error('admin_name')
+                                                <div class="invalid-feedback">{{ $message }}</div>
+                                            @enderror
+                                        </div>
+                                    </div>
+                                    
+                                    <div class="col-md-6">
+                                        <div class="form-group">
+                                            <label>Admin Email *</label>
+                                            <input type="email" name="admin_email" class="form-control @error('admin_email') is-invalid @enderror" 
+                                                   placeholder="Enter admin email" value="{{ old('admin_email', $school->email) }}" required>
+                                            @error('admin_email')
+                                                <div class="invalid-feedback">{{ $message }}</div>
+                                            @enderror
+                                        </div>
+                                    </div>
+                                    
+                                    <div class="col-md-6">
+                                        <div class="form-group">
+                                            <label>Admin Phone</label>
+                                            <input type="text" name="admin_phone" class="form-control @error('admin_phone') is-invalid @enderror" 
+                                                   placeholder="Enter admin phone" value="{{ old('admin_phone', $school->phone) }}">
+                                            @error('admin_phone')
+                                                <div class="invalid-feedback">{{ $message }}</div>
+                                            @enderror
+                                        </div>
+                                    </div>
+                                    
+                                    <div class="col-md-6">
+                                        <div class="form-group">
+                                            <label>Password *</label>
+                                            <div class="input-group">
+                                                <input type="password" name="admin_password" class="form-control @error('admin_password') is-invalid @enderror" 
+                                                       placeholder="Enter password" required>
+                                                <div class="input-group-append">
+                                                    <button class="btn btn-outline-secondary" type="button" id="togglePassword">
+                                                        <i class="las la-eye"></i>
+                                                    </button>
+                                                </div>
+                                                @error('admin_password')
+                                                    <div class="invalid-feedback">{{ $message }}</div>
+                                                @enderror
+                                            </div>
+                                            <small class="form-text text-muted">Minimum 8 characters</small>
+                                        </div>
+                                    </div>
+                                    
+                                    <div class="col-md-12">
+                                        <div class="form-group">
+                                            <label>Confirm Password *</label>
+                                            <input type="password" name="admin_password_confirmation" class="form-control @error('admin_password') is-invalid @enderror" 
+                                                   placeholder="Confirm password" required>
+                                        </div>
+                                    </div>
+                                    
+                                    <input type="hidden" name="create_admin" value="1">
+                                @endif
+                            </div>
+                            
                             <div class="row mt-4">
                                 <div class="col-md-12">
                                     <button type="submit" class="btn btn-primary mr-2">
-                                        <i class="las la-save mr-2"></i> Update School
+                                        <i class="las la-save mr-2"></i> Update School & Admin
                                     </button>
                                     <a href="{{ route('schools.index') }}" class="btn btn-danger">
                                         <i class="las la-times mr-2"></i> Cancel
@@ -159,6 +321,21 @@
                     );
                 }
                 reader.readAsDataURL(this.files[0]);
+            }
+        });
+        
+        // Toggle password visibility
+        $('#togglePassword').on('click', function() {
+            const passwordInput = $(this).closest('.input-group').find('input[name*="password"]');
+            const type = passwordInput.attr('type') === 'password' ? 'text' : 'password';
+            passwordInput.attr('type', type);
+            
+            // Toggle eye icon
+            const eyeIcon = $(this).find('i');
+            if (type === 'text') {
+                eyeIcon.removeClass('la-eye').addClass('la-eye-slash');
+            } else {
+                eyeIcon.removeClass('la-eye-slash').addClass('la-eye');
             }
         });
     </script>
