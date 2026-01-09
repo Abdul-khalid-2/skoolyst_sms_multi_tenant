@@ -5,681 +5,797 @@
     <link rel="stylesheet" href="{{ asset('backend/assets/vendor/@fortawesome/fontawesome-free/css/all.min.css') }}">
     <link rel="stylesheet" href="{{ asset('backend/assets/vendor/line-awesome/dist/line-awesome/css/line-awesome.min.css') }}">
     <link rel="stylesheet" href="{{ asset('backend/assets/vendor/remixicon/fonts/remixicon.css') }}">
+    <style>
+        .settings-card {
+            border: 1px solid #dee2e6;
+            border-radius: 10px;
+            transition: all 0.3s ease;
+        }
+        
+        .settings-card:hover {
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+        }
+        
+        .settings-icon {
+            width: 50px;
+            height: 50px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 10px;
+            font-size: 20px;
+            margin-right: 15px;
+        }
+        
+        .logo-preview {
+            width: 150px;
+            height: 150px;
+            border: 2px dashed #dee2e6;
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background-color: #f8f9fa;
+            overflow: hidden;
+        }
+        
+        .logo-preview img {
+            max-width: 100%;
+            max-height: 100%;
+            object-fit: contain;
+        }
+        
+        .color-picker {
+            width: 40px;
+            height: 40px;
+            border-radius: 5px;
+            border: 2px solid #fff;
+            cursor: pointer;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+        }
+        
+        .settings-tabs .nav-link {
+            padding: 12px 20px;
+            border-radius: 5px;
+            margin-bottom: 5px;
+            transition: all 0.3s ease;
+        }
+        
+        .settings-tabs .nav-link.active {
+            background-color: #007bff;
+            color: white;
+        }
+        
+        .loading-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(255,255,255,0.8);
+            display: none;
+            justify-content: center;
+            align-items: center;
+            z-index: 9999;
+        }
+    </style>
     @endpush
+
+    <!-- Loading Overlay -->
+    <div class="loading-overlay" id="loadingOverlay">
+        <div class="spinner-border text-primary" role="status">
+            <span class="sr-only">Loading...</span>
+        </div>
+    </div>
 
     <div class="container-fluid">
         <!-- Page Header -->
         <div class="d-flex flex-wrap flex-wrap align-items-center justify-content-between mb-4">
             <div>
                 <h4 class="mb-3">School Settings</h4>
-                <p class="mb-0">Manage school configuration</p>
+                <p class="mb-0">Configure school information, appearance, and system preferences</p>
                 <nav aria-label="breadcrumb">
                     <ol class="breadcrumb">
-                        <li class="breadcrumb-item"><a href="#">Dashboard</a></li>
-                        <li class="breadcrumb-item"><a href="#">Schools</a></li>
-                        <li class="breadcrumb-item active">Settings</li>
+                        <li class="breadcrumb-item"><a href="{{ route('dashboard') }}">Dashboard</a></li>
+                        <li class="breadcrumb-item active">School Settings</li>
                     </ol>
                 </nav>
             </div>
+            <div>
+                <button type="button" class="btn btn-primary" id="saveAllSettings">
+                    <i class="las la-save mr-2"></i>Save All Settings
+                </button>
+            </div>
         </div>
 
-        <form action="{{ route('schools.settings.update', $school->id) }}" method="POST">
+        <form id="settingsForm">
             @csrf
-            @method('PUT')
-
-            <!-- Success Alert -->
-            @if(session('success'))
-            <div class="alert alert-success alert-dismissible fade show" role="alert">
-                {{ session('success') }}
-                <button type="button" class="close" data-dismiss="alert">
-                    <span aria-hidden="true">&times;</span>
-                </button>
-            </div>
-            @endif
-
-            <!-- Error Alert -->
-            @if(session('error'))
-            <div class="alert alert-danger alert-dismissible fade show" role="alert">
-                {{ session('error') }}
-                <button type="button" class="close" data-dismiss="alert">
-                    <span aria-hidden="true">&times;</span>
-                </button>
-            </div>
-            @endif
-            
-            <!-- 1. General Information Settings -->
-            <div class="card mb-4">
-                <div class="card-header">
-                    <h5 class="card-title mb-0 text-primary">
-                        <i class="las la-info-circle mr-2"></i> General Information
-                    </h5>
-                </div>
-                <div class="card-body">
-                    <div class="row">
-                        <div class="col-md-6">
-                            <div class="form-group">
-                                <label>Current Academic Year *</label>
-                                <select name="academic_current_academic_year" class="form-control" required>
-                                    <option value="">Select Academic Year</option>
-                                    <option value="2025-2026" {{ ($settings['academic_current_academic_year'] ?? '') == '2025-2026' ? 'selected' : '' }}>2025-2026</option>
-                                    <option value="2026-2027" {{ ($settings['academic_current_academic_year'] ?? '') == '2026-2027' ? 'selected' : '' }}>2026-2027</option>
-                                    <option value="2027-2028" {{ ($settings['academic_current_academic_year'] ?? '') == '2027-2028' ? 'selected' : '' }}>2027-2028</option>
-                                </select>
-                            </div>
-                        </div>
-
-                        <div class="col-md-6">
-                            <div class="form-group">
-                                <label>Default Class *</label>
-                                <select name="default_class" class="form-control" required>
-                                    <option value="">Select Default Class</option>
-                                    <option value="Nursery" {{ ($settings['default_class'] ?? '') == 'Nursery' ? 'selected' : '' }}>Nursery</option>
-                                    <option value="KG" {{ ($settings['default_class'] ?? '') == 'KG' ? 'selected' : '' }}>KG</option>
-                                    <option value="1st" {{ ($settings['default_class'] ?? '') == '1st' ? 'selected' : '' }}>1st</option>
-                                    <option value="2nd" {{ ($settings['default_class'] ?? '') == '2nd' ? 'selected' : '' }}>2nd</option>
-                                    <option value="3rd" {{ ($settings['default_class'] ?? '') == '3rd' ? 'selected' : '' }}>3rd</option>
-                                    <option value="4th" {{ ($settings['default_class'] ?? '') == '4th' ? 'selected' : '' }}>4th</option>
-                                    <option value="5th" {{ ($settings['default_class'] ?? '') == '5th' ? 'selected' : '' }}>5th</option>
-                                    <option value="6th" {{ ($settings['default_class'] ?? '') == '6th' ? 'selected' : '' }}>6th</option>
-                                    <option value="7th" {{ ($settings['default_class'] ?? '') == '7th' ? 'selected' : '' }}>7th</option>
-                                    <option value="8th" {{ ($settings['default_class'] ?? '') == '8th' ? 'selected' : '' }}>8th</option>
-                                    <option value="9th" {{ ($settings['default_class'] ?? '') == '9th' ? 'selected' : '' }}>9th</option>
-                                    <option value="10th" {{ ($settings['default_class'] ?? '') == '10th' ? 'selected' : '' }}>10th</option>
-                                    <option value="11th" {{ ($settings['default_class'] ?? '') == '11th' ? 'selected' : '' }}>11th</option>
-                                    <option value="12th" {{ ($settings['default_class'] ?? '') == '12th' ? 'selected' : '' }}>12th</option>
-                                </select>
-                            </div>
-                        </div>
-                        
-                        <div class="col-md-6">
-                            <div class="form-group">
-                                <label>Timezone *</label>
-                                <select name="timezone" class="form-control" required>
-                                    <option value="">Select Timezone</option>
-                                    <option value="Asia/Karachi" {{ ($settings['timezone'] ?? '') == 'Asia/Karachi' ? 'selected' : '' }}>Asia/Karachi (UTC+5)</option>
-                                    <option value="UTC" {{ ($settings['timezone'] ?? '') == 'UTC' ? 'selected' : '' }}>UTC</option>
-                                    <option value="America/New_York" {{ ($settings['timezone'] ?? '') == 'America/New_York' ? 'selected' : '' }}>America/New_York</option>
-                                    <option value="Europe/London" {{ ($settings['timezone'] ?? '') == 'Europe/London' ? 'selected' : '' }}>Europe/London</option>
-                                </select>
-                            </div>
-                        </div>
-                        
-                        <div class="col-md-6">
-                            <div class="form-group">
-                                <label>Currency *</label>
-                                <select name="currency" class="form-control" required>
-                                    <option value="PKR" {{ ($settings['currency'] ?? '') == 'PKR' ? 'selected' : '' }}>PKR - Pakistani Rupee</option>
-                                    <option value="USD" {{ ($settings['currency'] ?? '') == 'USD' ? 'selected' : '' }}>USD - US Dollar</option>
-                                    <option value="EUR" {{ ($settings['currency'] ?? '') == 'EUR' ? 'selected' : '' }}>EUR - Euro</option>
-                                    <option value="GBP" {{ ($settings['currency'] ?? '') == 'GBP' ? 'selected' : '' }}>GBP - British Pound</option>
-                                    <option value="SAR" {{ ($settings['currency'] ?? '') == 'SAR' ? 'selected' : '' }}>SAR - Saudi Riyal</option>
-                                    <option value="AED" {{ ($settings['currency'] ?? '') == 'AED' ? 'selected' : '' }}>AED - UAE Dirham</option>
-                                </select>
-                            </div>
-                        </div>
-
-                        <div class="col-md-6">
-                            <div class="form-group">
-                                <label>Date Format *</label>
-                                <select name="date_format" class="form-control" required>
-                                    <option value="d/m/Y" {{ ($settings['date_format'] ?? '') == 'd/m/Y' ? 'selected' : '' }}>DD/MM/YYYY (31/12/2024)</option>
-                                    <option value="m/d/Y" {{ ($settings['date_format'] ?? '') == 'm/d/Y' ? 'selected' : '' }}>MM/DD/YYYY (12/31/2024)</option>
-                                    <option value="Y-m-d" {{ ($settings['date_format'] ?? '') == 'Y-m-d' ? 'selected' : '' }}>YYYY-MM-DD (2024-12-31)</option>
-                                </select>
-                            </div>
-                        </div>
-                        
-                        <div class="col-md-6">
-                            <div class="form-group">
-                                <label>Time Format *</label>
-                                <select name="time_format" class="form-control" required>
-                                    <option value="12" {{ ($settings['time_format'] ?? '') == '12' ? 'selected' : '' }}>12-hour format (2:30 PM)</option>
-                                    <option value="24" {{ ($settings['time_format'] ?? '') == '24' ? 'selected' : '' }}>24-hour format (14:30)</option>
-                                </select>
+            <div class="row">
+                <!-- Left Sidebar - Settings Navigation -->
+                <div class="col-lg-3">
+                    <div class="card settings-card mb-4">
+                        <div class="card-body settings-tabs">
+                            <div class="nav flex-column nav-pills" id="settingsTab" role="tablist">
+                                <a class="nav-link active" data-toggle="pill" href="#general">
+                                    <i class="las la-cog mr-2"></i>General
+                                </a>
+                                <a class="nav-link" data-toggle="pill" href="#appearance">
+                                    <i class="las la-palette mr-2"></i>Appearance
+                                </a>
+                                <a class="nav-link" data-toggle="pill" href="#academic">
+                                    <i class="las la-graduation-cap mr-2"></i>Academic
+                                </a>
+                                <a class="nav-link" data-toggle="pill" href="#fee">
+                                    <i class="las la-money-bill-wave mr-2"></i>Fee Settings
+                                </a>
+                                <a class="nav-link" data-toggle="pill" href="#attendance">
+                                    <i class="las la-calendar-check mr-2"></i>Attendance
+                                </a>
+                                <a class="nav-link" data-toggle="pill" href="#notification">
+                                    <i class="las la-bell mr-2"></i>Notifications
+                                </a>
+                                <a class="nav-link" data-toggle="pill" href="#security">
+                                    <i class="las la-shield-alt mr-2"></i>Security
+                                </a>
+                                <a class="nav-link" data-toggle="pill" href="#backup">
+                                    <i class="las la-database mr-2"></i>Backup
+                                </a>
                             </div>
                         </div>
                     </div>
-                </div>
-            </div>
-
-            <!-- 2. Academic Settings -->
-            <div class="card mb-4">
-                <div class="card-header">
-                    <h5 class="card-title mb-0 text-primary">
-                        <i class="las la-graduation-cap mr-2"></i> Academic Settings
-                    </h5>
-                </div>
-                <div class="card-body">
-                    <div class="row">
-                        <div class="col-md-6">
-                            <div class="form-group">
-                                <label>Grading System *</label>
-                                <select name="grading_system" class="form-control" required>
-                                    <option value="percentage" {{ ($settings['grading_system'] ?? '') == 'percentage' ? 'selected' : '' }}>Percentage (%)</option>
-                                    <option value="cgpa" {{ ($settings['grading_system'] ?? '') == 'cgpa' ? 'selected' : '' }}>CGPA (4.0 scale)</option>
-                                    <option value="gpa" {{ ($settings['grading_system'] ?? '') == 'gpa' ? 'selected' : '' }}>GPA (5.0 scale)</option>
-                                    <option value="letter" {{ ($settings['grading_system'] ?? '') == 'letter' ? 'selected' : '' }}>Letter Grades (A-F)</option>
-                                </select>
-                            </div>
-                        </div>
-                        
-                        <div class="col-md-6">
-                            <div class="form-group">
-                                <label>Passing Percentage *</label>
-                                <input type="number" name="passing_percentage" class="form-control"
-                                    value="{{ old('passing_percentage', $settings['passing_percentage'] ?? '40') }}" min="0" max="100" required>
-                                <small class="form-text text-muted">Minimum percentage required to pass</small>
-                            </div>
-                        </div>
-                        
-                        <div class="col-md-6">
-                            <div class="form-group">
-                                <div class="custom-control custom-switch">
-                                    <input type="checkbox" class="custom-control-input"
-                                        id="enable_attendance" name="enable_attendance" value="1" 
-                                        {{ ($settings['enable_attendance'] ?? '1') == '1' ? 'checked' : '' }}>
-                                    <label class="custom-control-label" for="enable_attendance">
-                                        Enable Attendance Tracking
-                                    </label>
-                                </div>
-                            </div>
-                        </div>
-                        
-                        <div class="col-md-6">
-                            <div class="form-group">
-                                <div class="custom-control custom-switch">
-                                    <input type="checkbox" class="custom-control-input"
-                                        id="enable_exams" name="enable_exams" value="1"
-                                        {{ ($settings['enable_exams'] ?? '1') == '1' ? 'checked' : '' }}>
-                                    <label class="custom-control-label" for="enable_exams">
-                                        Enable Exam Management
-                                    </label>
-                                </div>
-                            </div>
-                        </div>
-                        
-                        <div class="col-md-12">
-                            <div class="form-group">
-                                <label>Academic Terms in Year</label>
-                                <div class="row">
-                                    @php
-                                        $selectedTerms = json_decode($settings['terms'] ?? '["1st","2nd"]', true) ?? ['1st', '2nd'];
-                                    @endphp
-                                    <div class="col-4">
-                                        <div class="custom-control custom-checkbox">
-                                            <input type="checkbox" class="custom-control-input" id="term1" name="terms[]" value="1st" 
-                                                {{ in_array('1st', $selectedTerms) ? 'checked' : '' }}>
-                                            <label class="custom-control-label" for="term1">1st Term</label>
-                                        </div>
-                                    </div>
-                                    <div class="col-4">
-                                        <div class="custom-control custom-checkbox">
-                                            <input type="checkbox" class="custom-control-input" id="term2" name="terms[]" value="2nd"
-                                                {{ in_array('2nd', $selectedTerms) ? 'checked' : '' }}>
-                                            <label class="custom-control-label" for="term2">2nd Term</label>
-                                        </div>
-                                    </div>
-                                    <div class="col-4">
-                                        <div class="custom-control custom-checkbox">
-                                            <input type="checkbox" class="custom-control-input" id="term3" name="terms[]" value="3rd"
-                                                {{ in_array('3rd', $selectedTerms) ? 'checked' : '' }}>
-                                            <label class="custom-control-label" for="term3">3rd Term</label>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            <!-- 3. Fee Management Settings -->
-            <div class="card mb-4">
-                <div class="card-header">
-                    <h5 class="card-title mb-0 text-primary">
-                        <i class="las la-money-bill-wave mr-2"></i> Fee Management Settings
-                    </h5>
-                </div>
-                <div class="card-body">
-                    <!-- Basic Fee Settings -->
-                    <div class="row mb-4">
-                        <div class="col-md-12">
-                            <h6 class="text-primary mb-3">Basic Settings</h6>
-                        </div>
-                        <div class="col-md-4">
-                            <div class="form-group">
-                                <label>Fee Due Days *</label>
-                                <input type="number" name="fee_due_days" class="form-control"
-                                    value="{{ old('fee_due_days', $settings['fee_due_days'] ?? '10') }}" min="1" max="90" required>
-                                <small class="form-text text-muted">Days after which fee is considered late</small>
-                            </div>
-                        </div>
-                        
-                        <div class="col-md-4">
-                            <div class="form-group">
-                                <label>Late Fee Amount</label>
-                                <input type="number" step="0.01" name="late_fee_amount" class="form-control"
-                                    value="{{ old('late_fee_amount', $settings['late_fee_amount'] ?? '500.00') }}" min="0">
-                                <small class="form-text text-muted">Fixed late fee amount</small>
-                            </div>
-                        </div>
-                        
-                        <div class="col-md-4">
-                            <div class="form-group">
-                                <label>Late Fee Type</label>
-                                <select name="late_fee_type" class="form-control">
-                                    <option value="fixed" {{ ($settings['late_fee_type'] ?? '') == 'fixed' ? 'selected' : '' }}>Fixed Amount</option>
-                                    <option value="percentage" {{ ($settings['late_fee_type'] ?? '') == 'percentage' ? 'selected' : '' }}>Percentage of Fee</option>
-                                </select>
-                            </div>
-                        </div>
-                    </div>
-
-                    <!-- Fee Features -->
-                    <div class="row mb-4">
-                        <div class="col-md-12">
-                            <h6 class="text-primary mb-3">Fee Features</h6>
-                        </div>
-                        <div class="col-md-4">
-                            <div class="custom-control custom-switch">
-                                <input type="checkbox" class="custom-control-input"
-                                    id="enable_partial_payment" name="enable_partial_payment" value="1"
-                                    {{ ($settings['enable_partial_payment'] ?? '1') == '1' ? 'checked' : '' }}>
-                                <label class="custom-control-label" for="enable_partial_payment">
-                                    Partial Payments
-                                </label>
-                                <small class="form-text text-muted">Allow installment payments</small>
-                            </div>
-                        </div>
-                        
-                        <div class="col-md-4">
-                            <div class="custom-control custom-switch">
-                                <input type="checkbox" class="custom-control-input"
-                                    id="enable_online_payment" name="enable_online_payment" value="1"
-                                    {{ ($settings['enable_online_payment'] ?? '1') == '1' ? 'checked' : '' }}>
-                                <label class="custom-control-label" for="enable_online_payment">
-                                    Online Payments
-                                </label>
-                                <small class="form-text text-muted">Enable online fee payment</small>
-                            </div>
-                        </div>
-                        
-                        <div class="col-md-4">
-                            <div class="custom-control custom-switch">
-                                <input type="checkbox" class="custom-control-input"
-                                    id="enable_fee_waiver" name="enable_fee_waiver" value="1"
-                                    {{ ($settings['enable_fee_waiver'] ?? '0') == '1' ? 'checked' : '' }}>
-                                <label class="custom-control-label" for="enable_fee_waiver">
-                                    Fee Waivers
-                                </label>
-                                <small class="form-text text-muted">Allow fee concessions</small>
-                            </div>
-                        </div>
-                    </div>
-
-                    <!-- Discount Settings -->
-                    <div class="row">
-                        <div class="col-md-12">
-                            <h6 class="text-primary mb-3">Discount & Scholarship Settings</h6>
-                        </div>
-                        <div class="col-md-4">
-                            <div class="custom-control custom-switch">
-                                <input type="checkbox" class="custom-control-input"
-                                    id="enable_sibling_discount" name="enable_sibling_discount" value="1"
-                                    {{ ($settings['enable_sibling_discount'] ?? '1') == '1' ? 'checked' : '' }}>
-                                <label class="custom-control-label" for="enable_sibling_discount">
-                                    Sibling Discount
-                                </label>
-                            </div>
-                        </div>
-                        
-                        <div class="col-md-4">
-                            <div class="custom-control custom-switch">
-                                <input type="checkbox" class="custom-control-input"
-                                    id="enable_early_payment_discount" name="enable_early_payment_discount" value="1"
-                                    {{ ($settings['enable_early_payment_discount'] ?? '0') == '1' ? 'checked' : '' }}>
-                                <label class="custom-control-label" for="enable_early_payment_discount">
-                                    Early Payment Discount
-                                </label>
-                            </div>
-                        </div>
-                        
-                        <div class="col-md-4">
-                            <div class="custom-control custom-switch">
-                                <input type="checkbox" class="custom-control-input"
-                                    id="enable_scholarship" name="enable_scholarship" value="1"
-                                    {{ ($settings['enable_scholarship'] ?? '0') == '1' ? 'checked' : '' }}>
-                                <label class="custom-control-label" for="enable_scholarship">
-                                    Scholarships
-                                </label>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            <!-- 4. Student & Parent Settings -->
-            <div class="card mb-4">
-                <div class="card-header">
-                    <h5 class="card-title mb-0 text-primary">
-                        <i class="las la-users mr-2"></i> Student & Parent Settings
-                    </h5>
-                </div>
-                <div class="card-body">
-                    <div class="row">
-                        <div class="col-md-6">
-                            <div class="form-group">
-                                <label>Admission Number Format</label>
-                                <input type="text" name="admission_format" class="form-control"
-                                    value="{{ old('admission_format', $settings['admission_format'] ?? 'SCH-{YEAR}-{SEQ}') }}" placeholder="e.g., SCH-2024-001">
-                                <small class="form-text text-muted">Use {YEAR} for year, {SEQ} for sequence</small>
-                            </div>
-                        </div>
-                        
-                        <div class="col-md-6">
-                            <div class="form-group">
-                                <label>Roll Number Format</label>
-                                <input type="text" name="roll_number_format" class="form-control"
-                                    value="{{ old('roll_number_format', $settings['roll_number_format'] ?? '{CLASS}-{SECTION}-{NO}') }}" placeholder="e.g., 1-A-01">
-                                <small class="form-text text-muted">Use {CLASS}, {SECTION}, {NO}</small>
-                            </div>
-                        </div>
-                        
-                        <div class="col-md-6">
-                            <div class="custom-control custom-switch">
-                                <input type="checkbox" class="custom-control-input"
-                                    id="enable_parent_portal" name="enable_parent_portal" value="1"
-                                    {{ ($settings['enable_parent_portal'] ?? '1') == '1' ? 'checked' : '' }}>
-                                <label class="custom-control-label" for="enable_parent_portal">
-                                    Parent Portal Access
-                                </label>
-                                <small class="form-text text-muted">Allow parents to view student progress</small>
-                            </div>
-                        </div>
-                        
-                        <div class="col-md-6">
-                            <div class="custom-control custom-switch">
-                                <input type="checkbox" class="custom-control-input"
-                                    id="enable_student_portal" name="enable_student_portal" value="1"
-                                    {{ ($settings['enable_student_portal'] ?? '0') == '1' ? 'checked' : '' }}>
-                                <label class="custom-control-label" for="enable_student_portal">
-                                    Student Portal Access
-                                </label>
-                                <small class="form-text text-muted">Allow students to access their portal</small>
-                            </div>
-                        </div>
-                        
-                        <div class="col-md-12">
-                            <div class="custom-control custom-switch">
-                                <input type="checkbox" class="custom-control-input"
-                                    id="enable_sms_notifications" name="enable_sms_notifications" value="1"
-                                    {{ ($settings['enable_sms_notifications'] ?? '0') == '1' ? 'checked' : '' }}>
-                                <label class="custom-control-label" for="enable_sms_notifications">
-                                    SMS Notifications
-                                </label>
-                                <small class="form-text text-muted">Send SMS alerts for attendance, fees, etc.</small>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            <!-- 5. Staff & Teacher Settings -->
-            <div class="card mb-4">
-                <div class="card-header">
-                    <h5 class="card-title mb-0 text-primary">
-                        <i class="las la-chalkboard-teacher mr-2"></i> Staff & Teacher Settings
-                    </h5>
-                </div>
-                <div class="card-body">
-                    <div class="row">
-                        <div class="col-md-6">
-                            <div class="form-group">
-                                <label>Employee ID Format</label>
-                                <input type="text" name="employee_id_format" class="form-control"
-                                    value="{{ old('employee_id_format', $settings['employee_id_format'] ?? 'EMP-{YEAR}-{SEQ}') }}" placeholder="e.g., EMP-2024-001">
-                            </div>
-                        </div>
-                        
-                        <div class="col-md-6">
-                            <div class="form-group">
-                                <label>Default Working Hours/Day</label>
-                                <input type="number" name="working_hours" class="form-control"
-                                    value="{{ old('working_hours', $settings['working_hours'] ?? '8') }}" min="1" max="12">
-                                <small class="form-text text-muted">Standard working hours per day</small>
-                            </div>
-                        </div>
-                        
-                        <div class="col-md-6">
-                            <div class="custom-control custom-switch">
-                                <input type="checkbox" class="custom-control-input"
-                                    id="enable_teacher_portal" name="enable_teacher_portal" value="1"
-                                    {{ ($settings['enable_teacher_portal'] ?? '1') == '1' ? 'checked' : '' }}>
-                                <label class="custom-control-label" for="enable_teacher_portal">
-                                    Teacher Portal
-                                </label>
-                            </div>
-                        </div>
-                        
-                        <div class="col-md-6">
-                            <div class="custom-control custom-switch">
-                                <input type="checkbox" class="custom-control-input"
-                                    id="enable_attendance_tracking" name="enable_attendance_tracking" value="1"
-                                    {{ ($settings['enable_attendance_tracking'] ?? '0') == '1' ? 'checked' : '' }}>
-                                <label class="custom-control-label" for="enable_attendance_tracking">
-                                    Staff Attendance Tracking
-                                </label>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            <!-- 6. Inventory & Library Settings -->
-            <div class="card mb-4">
-                <div class="card-header">
-                    <h5 class="card-title mb-0 text-primary">
-                        <i class="las la-book mr-2"></i> Inventory & Library Settings
-                    </h5>
-                </div>
-                <div class="card-body">
-                    <div class="row">
-                        <div class="col-md-6">
-                            <div class="custom-control custom-switch">
-                                <input type="checkbox" class="custom-control-input"
-                                    id="enable_library" name="enable_library" value="1"
-                                    {{ ($settings['enable_library'] ?? '1') == '1' ? 'checked' : '' }}>
-                                <label class="custom-control-label" for="enable_library">
-                                    Library Management
-                                </label>
-                            </div>
-                        </div>
-                        
-                        <div class="col-md-6">
-                            <div class="custom-control custom-switch">
-                                <input type="checkbox" class="custom-control-input"
-                                    id="enable_inventory" name="enable_inventory" value="1"
-                                    {{ ($settings['enable_inventory'] ?? '0') == '1' ? 'checked' : '' }}>
-                                <label class="custom-control-label" for="enable_inventory">
-                                    Inventory Management
-                                </label>
-                            </div>
-                        </div>
-                        
-                        <div class="col-md-6">
-                            <div class="form-group">
-                                <label>Maximum Books Issuance</label>
-                                <input type="number" name="max_books" class="form-control"
-                                    value="{{ old('max_books', $settings['max_books'] ?? '3') }}" min="1" max="10">
-                                <small class="form-text text-muted">Maximum books a student can borrow</small>
-                            </div>
-                        </div>
-                        
-                        <div class="col-md-6">
-                            <div class="form-group">
-                                <label>Book Return Days</label>
-                                <input type="number" name="book_return_days" class="form-control"
-                                    value="{{ old('book_return_days', $settings['book_return_days'] ?? '14') }}" min="1" max="90">
-                                <small class="form-text text-muted">Days allowed to keep borrowed books</small>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            <!-- 7. Transportation Settings -->
-            <div class="card mb-4">
-                <div class="card-header">
-                    <h5 class="card-title mb-0 text-primary">
-                        <i class="las la-bus mr-2"></i> Transportation Settings
-                    </h5>
-                </div>
-                <div class="card-body">
-                    <div class="row">
-                        <div class="col-md-6">
-                            <div class="custom-control custom-switch">
-                                <input type="checkbox" class="custom-control-input"
-                                    id="enable_transport" name="enable_transport" value="1"
-                                    {{ ($settings['enable_transport'] ?? '0') == '1' ? 'checked' : '' }}>
-                                <label class="custom-control-label" for="enable_transport">
-                                    Transportation Management
-                                </label>
-                            </div>
-                        </div>
-                        
-                        <div class="col-md-6">
-                            <div class="form-group">
-                                <label>Transport Fee Type</label>
-                                <select name="transport_fee_type" class="form-control">
-                                    <option value="monthly" {{ ($settings['transport_fee_type'] ?? '') == 'monthly' ? 'selected' : '' }}>Monthly</option>
-                                    <option value="quarterly" {{ ($settings['transport_fee_type'] ?? '') == 'quarterly' ? 'selected' : '' }}>Quarterly</option>
-                                    <option value="yearly" {{ ($settings['transport_fee_type'] ?? '') == 'yearly' ? 'selected' : '' }}>Yearly</option>
-                                </select>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            <!-- 8. Theme & Branding -->
-            <div class="card mb-4">
-                <div class="card-header">
-                    <h5 class="card-title mb-0 text-primary">
-                        <i class="las la-palette mr-2"></i> Theme & Branding
-                    </h5>
-                </div>
-                <div class="card-body">
-                    <div class="row">
-                        <div class="col-md-4">
-                            <div class="form-group">
-                                <label>Primary Color</label>
-                                <div class="input-group colorpickerinput">
-                                    <input type="text" name="primary_color" class="form-control"
-                                        value="{{ old('primary_color', $settings['primary_color'] ?? '#007bff') }}">
-                                    <div class="input-group-append">
-                                        <span class="input-group-text colorpicker-input-addon">
-                                            <i></i>
-                                        </span>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                        
-                        <div class="col-md-4">
-                            <div class="form-group">
-                                <label>Secondary Color</label>
-                                <div class="input-group colorpickerinput">
-                                    <input type="text" name="secondary_color" class="form-control"
-                                        value="{{ old('secondary_color', $settings['secondary_color'] ?? '#6c757d') }}">
-                                    <div class="input-group-append">
-                                        <span class="input-group-text colorpicker-input-addon">
-                                            <i></i>
-                                        </span>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                        
-                        <div class="col-md-4">
-                            <div class="form-group">
-                                <label>Logo Display</label>
-                                <select name="logo_display" class="form-control">
-                                    <option value="show" {{ ($settings['logo_display'] ?? '') == 'show' ? 'selected' : '' }}>Show on all pages</option>
-                                    <option value="login_only" {{ ($settings['logo_display'] ?? '') == 'login_only' ? 'selected' : '' }}>Login page only</option>
-                                    <option value="hide" {{ ($settings['logo_display'] ?? '') == 'hide' ? 'selected' : '' }}>Hide</option>
-                                </select>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            <!-- 9. System & Security Settings -->
-            <div class="card mb-4">
-                <div class="card-header">
-                    <h5 class="card-title mb-0 text-primary">
-                        <i class="las la-shield-alt mr-2"></i> System & Security Settings
-                    </h5>
-                </div>
-                <div class="card-body">
-                    <div class="row">
-                        <div class="col-md-6">
-                            <div class="form-group">
-                                <label>Session Timeout (minutes)</label>
-                                <input type="number" name="session_timeout" class="form-control"
-                                    value="{{ old('session_timeout', $settings['session_timeout'] ?? '30') }}" min="5" max="240">
-                                <small class="form-text text-muted">Auto logout after inactivity</small>
-                            </div>
-                        </div>
-                        
-                        <div class="col-md-6">
-                            <div class="form-group">
-                                <label>Max Login Attempts</label>
-                                <input type="number" name="max_login_attempts" class="form-control"
-                                    value="{{ old('max_login_attempts', $settings['max_login_attempts'] ?? '5') }}" min="1" max="10">
-                                <small class="form-text text-muted">Before account lockout</small>
-                            </div>
-                        </div>
-                        
-                        <div class="col-md-6">
-                            <div class="custom-control custom-switch">
-                                <input type="checkbox" class="custom-control-input"
-                                    id="enable_two_factor" name="enable_two_factor" value="1"
-                                    {{ ($settings['enable_two_factor'] ?? '0') == '1' ? 'checked' : '' }}>
-                                <label class="custom-control-label" for="enable_two_factor">
-                                    Two-Factor Authentication
-                                </label>
-                            </div>
-                        </div>
-                        
-                        <div class="col-md-6">
-                            <div class="custom-control custom-switch">
-                                <input type="checkbox" class="custom-control-input"
-                                    id="enable_audit_log" name="enable_audit_log" value="1"
-                                    {{ ($settings['enable_audit_log'] ?? '1') == '1' ? 'checked' : '' }}>
-                                <label class="custom-control-label" for="enable_audit_log">
-                                    Audit Logging
-                                </label>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Action Buttons -->
-            <div class="card">
-                <div class="card-body">
-                    <div class="row">
-                        <div class="col-md-12">
-                            <button type="submit" class="btn btn-primary mr-2">
-                                <i class="las la-save mr-2"></i> Save All Settings
+                    
+                    <!-- Quick Actions -->
+                    <div class="card settings-card">
+                        <div class="card-body">
+                            <h6 class="card-title">Quick Actions</h6>
+                            <button type="button" class="btn btn-sm btn-outline-primary btn-block mb-2" id="exportSettings">
+                                <i class="las la-download mr-2"></i>Export Settings
                             </button>
-                            <button type="reset" class="btn btn-danger mr-2">
-                                <i class="las la-redo mr-2"></i> Reset to Default
+                            <button type="button" class="btn btn-sm btn-outline-success btn-block mb-2" id="importSettings">
+                                <i class="las la-upload mr-2"></i>Import Settings
                             </button>
-                            <a href="{{ route('schools.show', $school->id) }}" class="btn btn-secondary">
-                                <i class="las la-arrow-left mr-2"></i> Back to School Details
-                            </a>
+                            <button type="button" class="btn btn-sm btn-outline-warning btn-block mb-2" id="resetSettings">
+                                <i class="las la-undo mr-2"></i>Reset to Default
+                            </button>
+                            <button type="button" class="btn btn-sm btn-outline-danger btn-block" id="clearCache">
+                                <i class="las la-trash mr-2"></i>Clear Cache
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Right Content - Settings Forms -->
+                <div class="col-lg-9">
+                    <div class="tab-content" id="settingsTabContent">
+                        <!-- General Settings Tab -->
+                        <div class="tab-pane fade show active" id="general">
+                            <div class="card settings-card mb-4">
+                                <div class="card-header">
+                                    <h5 class="card-title mb-0">General Information</h5>
+                                </div>
+                                <div class="card-body">
+                                    <div class="row">
+                                        <div class="col-md-6">
+                                            <div class="form-group">
+                                                <label>School Name *</label>
+                                                <input type="text" class="form-control" name="setting_general_school_name" 
+                                                       value="{{ $groupedSettings['general']['school_name'] ?? '' }}">
+                                            </div>
+                                        </div>
+                                        <div class="col-md-6">
+                                            <div class="form-group">
+                                                <label>School Code</label>
+                                                <input type="text" class="form-control" name="setting_general_school_code"
+                                                       value="{{ $groupedSettings['general']['school_code'] ?? '' }}">
+                                            </div>
+                                        </div>
+                                        <div class="col-md-6">
+                                            <div class="form-group">
+                                                <label>Email Address *</label>
+                                                <input type="email" class="form-control" name="setting_general_email"
+                                                       value="{{ $groupedSettings['general']['email'] ?? '' }}">
+                                            </div>
+                                        </div>
+                                        <div class="col-md-6">
+                                            <div class="form-group">
+                                                <label>Phone Number *</label>
+                                                <input type="text" class="form-control" name="setting_general_phone"
+                                                       value="{{ $groupedSettings['general']['phone'] ?? '' }}">
+                                            </div>
+                                        </div>
+                                        <div class="col-md-12">
+                                            <div class="form-group">
+                                                <label>Address</label>
+                                                <textarea class="form-control" rows="3" name="setting_general_address">{{ $groupedSettings['general']['address'] ?? '' }}</textarea>
+                                            </div>
+                                        </div>
+                                        <div class="col-md-6">
+                                            <div class="form-group">
+                                                <label>Website</label>
+                                                <input type="url" class="form-control" name="setting_general_website"
+                                                       value="{{ $groupedSettings['general']['website'] ?? '' }}">
+                                            </div>
+                                        </div>
+                                        <div class="col-md-6">
+                                            <div class="form-group">
+                                                <label>Established Year</label>
+                                                <input type="number" class="form-control" name="setting_general_established_year"
+                                                       value="{{ $groupedSettings['general']['established_year'] ?? '' }}">
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="card settings-card">
+                                <div class="card-header">
+                                    <h5 class="card-title mb-0">School Logo & Branding</h5>
+                                </div>
+                                <div class="card-body">
+                                    <div class="row">
+                                        <div class="col-md-6">
+                                            <div class="form-group">
+                                                <label>School Logo</label>
+                                                <div class="logo-preview mb-3" id="logoPreview">
+                                                    @if(isset($groupedSettings['general']['logo']) && $groupedSettings['general']['logo'])
+                                                        <img src="{{ Storage::url($groupedSettings['general']['logo']) }}" alt="School Logo">
+                                                    @else
+                                                        <i class="las la-school fa-3x text-muted"></i>
+                                                    @endif
+                                                </div>
+                                                <div class="custom-file">
+                                                    <input type="file" class="custom-file-input" id="logoUpload" data-type="logo">
+                                                    <label class="custom-file-label" for="logoUpload">Choose logo file</label>
+                                                </div>
+                                                <small class="form-text text-muted">Recommended: 300x300px PNG or JPG (max 2MB)</small>
+                                            </div>
+                                        </div>
+                                        <div class="col-md-6">
+                                            <div class="form-group">
+                                                <label>Favicon</label>
+                                                <div class="logo-preview mb-3" style="width: 100px; height: 100px;" id="faviconPreview">
+                                                    @if(isset($groupedSettings['general']['favicon']) && $groupedSettings['general']['favicon'])
+                                                        <img src="{{ Storage::url($groupedSettings['general']['favicon']) }}" alt="Favicon">
+                                                    @else
+                                                        <i class="las la-flag fa-2x text-muted"></i>
+                                                    @endif
+                                                </div>
+                                                <div class="custom-file">
+                                                    <input type="file" class="custom-file-input" id="faviconUpload" data-type="favicon">
+                                                    <label class="custom-file-label" for="faviconUpload">Choose favicon file</label>
+                                                </div>
+                                                <small class="form-text text-muted">Recommended: 64x64px ICO or PNG (max 500KB)</small>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Appearance Settings Tab -->
+                        <div class="tab-pane fade" id="appearance">
+                            <div class="card settings-card mb-4">
+                                <div class="card-header">
+                                    <h5 class="card-title mb-0">Theme & Colors</h5>
+                                </div>
+                                <div class="card-body">
+                                    <div class="row">
+                                        <div class="col-md-6">
+                                            <div class="form-group">
+                                                <label>Primary Color</label>
+                                                <div class="d-flex align-items-center">
+                                                    <div class="color-picker mr-3" id="primaryColorPicker" 
+                                                         style="background-color: {{ $groupedSettings['appearance']['primary_color'] ?? '#007bff' }}"></div>
+                                                    <input type="text" class="form-control" name="setting_appearance_primary_color" 
+                                                           id="primaryColorInput" value="{{ $groupedSettings['appearance']['primary_color'] ?? '#007bff' }}">
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <div class="col-md-6">
+                                            <div class="form-group">
+                                                <label>Secondary Color</label>
+                                                <div class="d-flex align-items-center">
+                                                    <div class="color-picker mr-3" id="secondaryColorPicker"
+                                                         style="background-color: {{ $groupedSettings['appearance']['secondary_color'] ?? '#6c757d' }}"></div>
+                                                    <input type="text" class="form-control" name="setting_appearance_secondary_color"
+                                                           id="secondaryColorInput" value="{{ $groupedSettings['appearance']['secondary_color'] ?? '#6c757d' }}">
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <div class="col-md-6">
+                                            <div class="form-group">
+                                                <label>Success Color</label>
+                                                <div class="d-flex align-items-center">
+                                                    <div class="color-picker mr-3" id="successColorPicker"
+                                                         style="background-color: {{ $groupedSettings['appearance']['success_color'] ?? '#28a745' }}"></div>
+                                                    <input type="text" class="form-control" name="setting_appearance_success_color"
+                                                           id="successColorInput" value="{{ $groupedSettings['appearance']['success_color'] ?? '#28a745' }}">
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <div class="col-md-6">
+                                            <div class="form-group">
+                                                <label>Danger Color</label>
+                                                <div class="d-flex align-items-center">
+                                                    <div class="color-picker mr-3" id="dangerColorPicker"
+                                                         style="background-color: {{ $groupedSettings['appearance']['danger_color'] ?? '#dc3545' }}"></div>
+                                                    <input type="text" class="form-control" name="setting_appearance_danger_color"
+                                                           id="dangerColorInput" value="{{ $groupedSettings['appearance']['danger_color'] ?? '#dc3545' }}">
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <div class="col-md-12">
+                                            <div class="form-group">
+                                                <label>Theme</label>
+                                                <select class="form-control" name="setting_appearance_theme">
+                                                    <option value="light" {{ ($groupedSettings['appearance']['theme'] ?? 'light') == 'light' ? 'selected' : '' }}>Light Theme</option>
+                                                    <option value="dark" {{ ($groupedSettings['appearance']['theme'] ?? 'light') == 'dark' ? 'selected' : '' }}>Dark Theme</option>
+                                                    <option value="auto" {{ ($groupedSettings['appearance']['theme'] ?? 'light') == 'auto' ? 'selected' : '' }}>Auto (System Preference)</option>
+                                                </select>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="card settings-card">
+                                <div class="card-header">
+                                    <h5 class="card-title mb-0">Layout & Display</h5>
+                                </div>
+                                <div class="card-body">
+                                    <div class="row">
+                                        <div class="col-md-6">
+                                            <div class="form-group">
+                                                <label>Sidebar Style</label>
+                                                <select class="form-control" name="setting_appearance_sidebar_style">
+                                                    <option value="default" {{ ($groupedSettings['appearance']['sidebar_style'] ?? 'default') == 'default' ? 'selected' : '' }}>Default</option>
+                                                    <option value="compact" {{ ($groupedSettings['appearance']['sidebar_style'] ?? 'default') == 'compact' ? 'selected' : '' }}>Compact</option>
+                                                    <option value="icon-only" {{ ($groupedSettings['appearance']['sidebar_style'] ?? 'default') == 'icon-only' ? 'selected' : '' }}>Icons Only</option>
+                                                </select>
+                                            </div>
+                                        </div>
+                                        <div class="col-md-6">
+                                            <div class="form-group">
+                                                <label>Dashboard Style</label>
+                                                <select class="form-control" name="setting_appearance_dashboard_style">
+                                                    <option value="modern" {{ ($groupedSettings['appearance']['dashboard_style'] ?? 'modern') == 'modern' ? 'selected' : '' }}>Modern</option>
+                                                    <option value="classic" {{ ($groupedSettings['appearance']['dashboard_style'] ?? 'modern') == 'classic' ? 'selected' : '' }}>Classic</option>
+                                                    <option value="minimal" {{ ($groupedSettings['appearance']['dashboard_style'] ?? 'modern') == 'minimal' ? 'selected' : '' }}>Minimal</option>
+                                                </select>
+                                            </div>
+                                        </div>
+                                        <div class="col-md-12">
+                                            <div class="form-group">
+                                                <div class="custom-control custom-switch">
+                                                    <input type="checkbox" class="custom-control-input" id="animations" name="setting_appearance_animations" value="1"
+                                                           {{ ($groupedSettings['appearance']['animations'] ?? '0') == '1' ? 'checked' : '' }}>
+                                                    <label class="custom-control-label" for="animations">
+                                                        Enable Animations
+                                                    </label>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Academic Settings Tab -->
+                        <div class="tab-pane fade" id="academic">
+                            <div class="card settings-card mb-4">
+                                <div class="card-header">
+                                    <h5 class="card-title mb-0">Academic Configuration</h5>
+                                </div>
+                                <div class="card-body">
+                                    <div class="row">
+                                        <div class="col-md-6">
+                                            <div class="form-group">
+                                                <label>Current Academic Year *</label>
+                                                <select class="form-control" name="setting_academic_current_academic_year">
+                                                    <option value="2024-2025" {{ ($groupedSettings['academic']['current_academic_year'] ?? '2024-2025') == '2024-2025' ? 'selected' : '' }}>2024-2025</option>
+                                                    <option value="2023-2024" {{ ($groupedSettings['academic']['current_academic_year'] ?? '2024-2025') == '2023-2024' ? 'selected' : '' }}>2023-2024</option>
+                                                    <option value="2022-2023" {{ ($groupedSettings['academic']['current_academic_year'] ?? '2024-2025') == '2022-2023' ? 'selected' : '' }}>2022-2023</option>
+                                                </select>
+                                            </div>
+                                        </div>
+                                        <div class="col-md-6">
+                                            <div class="form-group">
+                                                <label>Education System</label>
+                                                <select class="form-control" name="setting_academic_education_system">
+                                                    <option value="matric" {{ ($groupedSettings['academic']['education_system'] ?? 'matric') == 'matric' ? 'selected' : '' }}>Matriculation</option>
+                                                    <option value="cambridge" {{ ($groupedSettings['academic']['education_system'] ?? 'matric') == 'cambridge' ? 'selected' : '' }}>Cambridge</option>
+                                                    <option value="ib" {{ ($groupedSettings['academic']['education_system'] ?? 'matric') == 'ib' ? 'selected' : '' }}>International Baccalaureate</option>
+                                                    <option value="american" {{ ($groupedSettings['academic']['education_system'] ?? 'matric') == 'american' ? 'selected' : '' }}>American Curriculum</option>
+                                                </select>
+                                            </div>
+                                        </div>
+                                        <div class="col-md-6">
+                                            <div class="form-group">
+                                                <label>Default Class Capacity</label>
+                                                <input type="number" class="form-control" name="setting_academic_default_class_capacity" 
+                                                       value="{{ $groupedSettings['academic']['default_class_capacity'] ?? '' }}">
+                                            </div>
+                                        </div>
+                                        <div class="col-md-6">
+                                            <div class="form-group">
+                                                <label>Max Students per Section</label>
+                                                <input type="number" class="form-control" name="setting_academic_max_students_per_section"
+                                                       value="{{ $groupedSettings['academic']['max_students_per_section'] ?? '' }}">
+                                            </div>
+                                        </div>
+                                        <div class="col-md-6">
+                                            <div class="form-group">
+                                                <label>Academic Session Start Month</label>
+                                                <select class="form-control" name="setting_academic_academic_session_start_month">
+                                                    @for($i = 1; $i <= 12; $i++)
+                                                        <option value="{{ $i }}" {{ ($groupedSettings['academic']['academic_session_start_month'] ?? '1') == $i ? 'selected' : '' }}>
+                                                            {{ date('F', mktime(0, 0, 0, $i, 1)) }}
+                                                        </option>
+                                                    @endfor
+                                                </select>
+                                            </div>
+                                        </div>
+                                        <div class="col-md-6">
+                                            <div class="form-group">
+                                                <label>Academic Session End Month</label>
+                                                <select class="form-control" name="setting_academic_academic_session_end_month">
+                                                    @for($i = 1; $i <= 12; $i++)
+                                                        <option value="{{ $i }}" {{ ($groupedSettings['academic']['academic_session_end_month'] ?? '1') == $i ? 'selected' : '' }}>
+                                                            {{ date('F', mktime(0, 0, 0, $i, 1)) }}
+                                                        </option>
+                                                    @endfor
+                                                </select>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="card settings-card">
+                                <div class="card-header">
+                                    <h5 class="card-title mb-0">Exam & Grading System</h5>
+                                </div>
+                                <div class="card-body">
+                                    <div class="row">
+                                        <div class="col-md-6">
+                                            <div class="form-group">
+                                                <label>Grading System</label>
+                                                <select class="form-control" name="setting_academic_grading_system">
+                                                    <option value="percentage" {{ ($groupedSettings['academic']['grading_system'] ?? 'percentage') == 'percentage' ? 'selected' : '' }}>Percentage</option>
+                                                    <option value="letter" {{ ($groupedSettings['academic']['grading_system'] ?? 'percentage') == 'letter' ? 'selected' : '' }}>Letter Grades</option>
+                                                    <option value="gpa" {{ ($groupedSettings['academic']['grading_system'] ?? 'percentage') == 'gpa' ? 'selected' : '' }}>GPA</option>
+                                                    <option value="cgpa" {{ ($groupedSettings['academic']['grading_system'] ?? 'percentage') == 'cgpa' ? 'selected' : '' }}>CGPA</option>
+                                                </select>
+                                            </div>
+                                        </div>
+                                        <div class="col-md-6">
+                                            <div class="form-group">
+                                                <label>Default Passing Percentage</label>
+                                                <div class="input-group">
+                                                    <input type="number" class="form-control" name="setting_academic_default_passing_percentage" 
+                                                           value="{{ $groupedSettings['academic']['default_passing_percentage'] ?? '' }}">
+                                                    <div class="input-group-append">
+                                                        <span class="input-group-text">%</span>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Fee Settings Tab -->
+                        <div class="tab-pane fade" id="fee">
+                            <div class="card settings-card mb-4">
+                                <div class="card-header">
+                                    <h5 class="card-title mb-0">Fee Configuration</h5>
+                                </div>
+                                <div class="card-body">
+                                    <div class="row">
+                                        <div class="col-md-6">
+                                            <div class="form-group">
+                                                <label>Currency *</label>
+                                                <select class="form-control" name="setting_fee_currency">
+                                                    <option value="PKR" {{ ($groupedSettings['fee']['currency'] ?? 'PKR') == 'PKR' ? 'selected' : '' }}>Pakistani Rupee (PKR)</option>
+                                                    <option value="USD" {{ ($groupedSettings['fee']['currency'] ?? 'PKR') == 'USD' ? 'selected' : '' }}>US Dollar (USD)</option>
+                                                    <option value="EUR" {{ ($groupedSettings['fee']['currency'] ?? 'PKR') == 'EUR' ? 'selected' : '' }}>Euro (EUR)</option>
+                                                    <option value="GBP" {{ ($groupedSettings['fee']['currency'] ?? 'PKR') == 'GBP' ? 'selected' : '' }}>British Pound (GBP)</option>
+                                                    <option value="AED" {{ ($groupedSettings['fee']['currency'] ?? 'PKR') == 'AED' ? 'selected' : '' }}>UAE Dirham (AED)</option>
+                                                </select>
+                                            </div>
+                                        </div>
+                                        <div class="col-md-6">
+                                            <div class="form-group">
+                                                <label>Currency Symbol</label>
+                                                <input type="text" class="form-control" name="setting_fee_currency_symbol" 
+                                                       value="{{ $groupedSettings['fee']['currency_symbol'] ?? '' }}">
+                                            </div>
+                                        </div>
+                                        <div class="col-md-6">
+                                            <div class="form-group">
+                                                <label>Default Fee Due Days</label>
+                                                <div class="input-group">
+                                                    <input type="number" class="form-control" name="setting_fee_default_fee_due_days" 
+                                                           value="{{ $groupedSettings['fee']['default_fee_due_days'] ?? '' }}">
+                                                    <div class="input-group-append">
+                                                        <span class="input-group-text">days</span>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <div class="col-md-6">
+                                            <div class="form-group">
+                                                <label>Late Fee Amount</label>
+                                                <div class="input-group">
+                                                    <div class="input-group-prepend">
+                                                        <span class="input-group-text">{{ $groupedSettings['fee']['currency_symbol'] ?? '' }}</span>
+                                                    </div>
+                                                    <input type="number" class="form-control" name="setting_fee_late_fee_amount" 
+                                                           value="{{ $groupedSettings['fee']['late_fee_amount'] ?? '' }}">
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <div class="col-md-6">
+                                            <div class="form-group">
+                                                <label>Late Fee Type</label>
+                                                <select class="form-control" name="setting_fee_late_fee_type">
+                                                    <option value="fixed" {{ ($groupedSettings['fee']['late_fee_type'] ?? 'fixed') == 'fixed' ? 'selected' : '' }}>Fixed Amount</option>
+                                                    <option value="percentage" {{ ($groupedSettings['fee']['late_fee_type'] ?? 'fixed') == 'percentage' ? 'selected' : '' }}>Percentage</option>
+                                                </select>
+                                            </div>
+                                        </div>
+                                        <div class="col-md-6">
+                                            <div class="form-group">
+                                                <label>Late Fee Percentage</label>
+                                                <div class="input-group">
+                                                    <input type="number" class="form-control" name="setting_fee_late_fee_percentage" 
+                                                           value="{{ $groupedSettings['fee']['late_fee_percentage'] ?? '' }}">
+                                                    <div class="input-group-append">
+                                                        <span class="input-group-text">%</span>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <div class="col-md-6">
+                                            <div class="form-group">
+                                                <label>Invoice Prefix</label>
+                                                <input type="text" class="form-control" name="setting_fee_invoice_prefix" 
+                                                       value="{{ $groupedSettings['fee']['invoice_prefix'] ?? '' }}">
+                                            </div>
+                                        </div>
+                                        <div class="col-md-6">
+                                            <div class="form-group">
+                                                <label>Receipt Prefix</label>
+                                                <input type="text" class="form-control" name="setting_fee_receipt_prefix" 
+                                                       value="{{ $groupedSettings['fee']['receipt_prefix'] ?? '' }}">
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Attendance Settings Tab -->
+                        <div class="tab-pane fade" id="attendance">
+                            <div class="card settings-card mb-4">
+                                <div class="card-header">
+                                    <h5 class="card-title mb-0">Attendance Configuration</h5>
+                                </div>
+                                <div class="card-body">
+                                    <div class="row">
+                                        <div class="col-md-6">
+                                            <div class="form-group">
+                                                <label>Default Attendance Method</label>
+                                                <select class="form-control" name="setting_attendance_default_attendance_method">
+                                                    <option value="daily" {{ ($groupedSettings['attendance']['default_attendance_method'] ?? 'daily') == 'daily' ? 'selected' : '' }}>Daily Attendance</option>
+                                                    <option value="period" {{ ($groupedSettings['attendance']['default_attendance_method'] ?? 'daily') == 'period' ? 'selected' : '' }}>Period-wise</option>
+                                                    <option value="subject" {{ ($groupedSettings['attendance']['default_attendance_method'] ?? 'daily') == 'subject' ? 'selected' : '' }}>Subject-wise</option>
+                                                </select>
+                                            </div>
+                                        </div>
+                                        <div class="col-md-6">
+                                            <div class="form-group">
+                                                <label>Attendance Cut-off Time</label>
+                                                <input type="time" class="form-control" name="setting_attendance_attendance_cutoff_time" 
+                                                       value="{{ $groupedSettings['attendance']['attendance_cutoff_time'] ?? '' }}">
+                                            </div>
+                                        </div>
+                                        <div class="col-md-6">
+                                            <div class="form-group">
+                                                <label>Default Present Mark</label>
+                                                <input type="text" class="form-control" name="setting_attendance_default_present_mark" 
+                                                       value="{{ $groupedSettings['attendance']['default_present_mark'] ?? '' }}">
+                                            </div>
+                                        </div>
+                                        <div class="col-md-6">
+                                            <div class="form-group">
+                                                <label>Default Absent Mark</label>
+                                                <input type="text" class="form-control" name="setting_attendance_default_absent_mark" 
+                                                       value="{{ $groupedSettings['attendance']['default_absent_mark'] ?? '' }}">
+                                            </div>
+                                        </div>
+                                        <div class="col-md-6">
+                                            <div class="form-group">
+                                                <label>Default Late Mark</label>
+                                                <input type="text" class="form-control" name="setting_attendance_default_late_mark" 
+                                                       value="{{ $groupedSettings['attendance']['default_late_mark'] ?? '' }}">
+                                            </div>
+                                        </div>
+                                        <div class="col-md-6">
+                                            <div class="form-group">
+                                                <label>Default Half Day Mark</label>
+                                                <input type="text" class="form-control" name="setting_attendance_default_half_day_mark" 
+                                                       value="{{ $groupedSettings['attendance']['default_half_day_mark'] ?? '' }}">
+                                            </div>
+                                        </div>
+                                        <div class="col-md-6">
+                                            <div class="form-group">
+                                                <label>SMS Send Time</label>
+                                                <input type="time" class="form-control" name="setting_attendance_sms_send_time" 
+                                                       value="{{ $groupedSettings['attendance']['sms_send_time'] ?? '' }}">
+                                            </div>
+                                        </div>
+                                        <div class="col-md-6">
+                                            <div class="form-group">
+                                                <label>SMS Provider</label>
+                                                <select class="form-control" name="setting_attendance_sms_provider">
+                                                    <option value="telenor" {{ ($groupedSettings['attendance']['sms_provider'] ?? 'telenor') == 'telenor' ? 'selected' : '' }}>Telenor</option>
+                                                    <option value="jazz" {{ ($groupedSettings['attendance']['sms_provider'] ?? 'telenor') == 'jazz' ? 'selected' : '' }}>Jazz</option>
+                                                    <option value="zong" {{ ($groupedSettings['attendance']['sms_provider'] ?? 'telenor') == 'zong' ? 'selected' : '' }}>Zong</option>
+                                                    <option value="ufone" {{ ($groupedSettings['attendance']['sms_provider'] ?? 'telenor') == 'ufone' ? 'selected' : '' }}>Ufone</option>
+                                                </select>
+                                            </div>
+                                        </div>
+                                        <div class="col-md-12">
+                                            <div class="form-group">
+                                                <label>Absent SMS Template</label>
+                                                <textarea class="form-control" rows="3" name="setting_attendance_absent_sms_template">{{ $groupedSettings['attendance']['absent_sms_template'] ?? '' }}</textarea>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Notification Settings Tab -->
+                        <div class="tab-pane fade" id="notification">
+                            <div class="card settings-card mb-4">
+                                <div class="card-header">
+                                    <h5 class="card-title mb-0">Notification Configuration</h5>
+                                </div>
+                                <div class="card-body">
+                                    <div class="row">
+                                        <div class="col-md-6">
+                                            <div class="form-group">
+                                                <label>Firebase Server Key</label>
+                                                <input type="password" class="form-control" name="setting_notification_firebase_key" 
+                                                       value="{{ $groupedSettings['notification']['firebase_key'] ?? '' }}" 
+                                                       placeholder="Enter Firebase server key">
+                                            </div>
+                                        </div>
+                                        <div class="col-md-6">
+                                            <div class="form-group">
+                                                <label>Sender ID</label>
+                                                <input type="text" class="form-control" name="setting_notification_sender_id" 
+                                                       value="{{ $groupedSettings['notification']['sender_id'] ?? '' }}" 
+                                                       placeholder="Sender ID">
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Security Settings Tab -->
+                        <div class="tab-pane fade" id="security">
+                            <div class="card settings-card mb-4">
+                                <div class="card-header">
+                                    <h5 class="card-title mb-0">Security Configuration</h5>
+                                </div>
+                                <div class="card-body">
+                                    <div class="row">
+                                        <div class="col-md-6">
+                                            <div class="form-group">
+                                                <label>Session Timeout</label>
+                                                <div class="input-group">
+                                                    <input type="number" class="form-control" name="setting_security_session_timeout" 
+                                                           value="{{ $groupedSettings['security']['session_timeout'] ?? '' }}">
+                                                    <div class="input-group-append">
+                                                        <span class="input-group-text">minutes</span>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <div class="col-md-6">
+                                            <div class="form-group">
+                                                <label>Max Login Attempts</label>
+                                                <input type="number" class="form-control" name="setting_security_max_login_attempts" 
+                                                       value="{{ $groupedSettings['security']['max_login_attempts'] ?? '' }}">
+                                            </div>
+                                        </div>
+                                        <div class="col-md-6">
+                                            <div class="form-group">
+                                                <label>Lockout Duration</label>
+                                                <div class="input-group">
+                                                    <input type="number" class="form-control" name="setting_security_lockout_duration" 
+                                                           value="{{ $groupedSettings['security']['lockout_duration'] ?? '' }}">
+                                                    <div class="input-group-append">
+                                                        <span class="input-group-text">minutes</span>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <div class="col-md-6">
+                                            <div class="form-group">
+                                                <label>Password Expiry Days</label>
+                                                <div class="input-group">
+                                                    <input type="number" class="form-control" name="setting_security_password_expiry_days" 
+                                                           value="{{ $groupedSettings['security']['password_expiry_days'] ?? '' }}">
+                                                    <div class="input-group-append">
+                                                        <span class="input-group-text">days</span>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Backup Settings Tab -->
+                        <div class="tab-pane fade" id="backup">
+                            <div class="card settings-card mb-4">
+                                <div class="card-header">
+                                    <h5 class="card-title mb-0">Backup Configuration</h5>
+                                </div>
+                                <div class="card-body">
+                                    <div class="row">
+                                        <div class="col-md-6">
+                                            <div class="form-group">
+                                                <label>Backup Frequency</label>
+                                                <select class="form-control" name="setting_backup_backup_frequency">
+                                                    <option value="daily" {{ ($groupedSettings['backup']['backup_frequency'] ?? 'daily') == 'daily' ? 'selected' : '' }}>Daily</option>
+                                                    <option value="weekly" {{ ($groupedSettings['backup']['backup_frequency'] ?? 'daily') == 'weekly' ? 'selected' : '' }}>Weekly</option>
+                                                    <option value="monthly" {{ ($groupedSettings['backup']['backup_frequency'] ?? 'daily') == 'monthly' ? 'selected' : '' }}>Monthly</option>
+                                                    <option value="manual" {{ ($groupedSettings['backup']['backup_frequency'] ?? 'daily') == 'manual' ? 'selected' : '' }}>Manual Only</option>
+                                                </select>
+                                            </div>
+                                        </div>
+                                        <div class="col-md-6">
+                                            <div class="form-group">
+                                                <label>Backup Time</label>
+                                                <input type="time" class="form-control" name="setting_backup_backup_time" 
+                                                       value="{{ $groupedSettings['backup']['backup_time'] ?? '' }}">
+                                            </div>
+                                        </div>
+                                        <div class="col-md-6">
+                                            <div class="form-group">
+                                                <label>Backup Retention</label>
+                                                <div class="input-group">
+                                                    <input type="number" class="form-control" name="setting_backup_backup_retention" 
+                                                           value="{{ $groupedSettings['backup']['backup_retention'] ?? '' }}">
+                                                    <div class="input-group-append">
+                                                        <span class="input-group-text">days</span>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <div class="col-md-6">
+                                            <div class="form-group">
+                                                <label>Max Backup Size</label>
+                                                <div class="input-group">
+                                                    <input type="number" class="form-control" name="setting_backup_max_backup_size" 
+                                                           value="{{ $groupedSettings['backup']['max_backup_size'] ?? '' }}">
+                                                    <div class="input-group-append">
+                                                        <span class="input-group-text">MB</span>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -691,17 +807,269 @@
     <!-- Backend Bundle JavaScript -->
     <script src="{{ asset('backend/assets/js/backend-bundle.min.js') }}"></script>
     
-    <!-- Color Picker -->
+    <!-- School Settings Script -->
     <script>
         $(document).ready(function() {
-            // Initialize color picker if available
-            if($.fn.colorpicker) {
-                $('.colorpickerinput').colorpicker();
+            // File input labels
+            $('.custom-file-input').on('change', function() {
+                let fileName = $(this).val().split('\\').pop();
+                $(this).next('.custom-file-label').addClass("selected").html(fileName);
+                
+                // Upload file immediately
+                if (this.files && this.files[0]) {
+                    uploadFile(this.files[0], $(this).data('type'));
+                }
+            });
+            
+            // Color picker functionality
+            $('.color-picker').click(function() {
+                const colorInput = $(this).next('input');
+                const currentColor = colorInput.val();
+                
+                const newColor = prompt('Enter color code (hex):', currentColor);
+                if (newColor && /^#[0-9A-F]{6}$/i.test(newColor)) {
+                    $(this).css('background-color', newColor);
+                    colorInput.val(newColor);
+                }
+            });
+            
+            // Update color picker when input changes
+            $('input[id$="ColorInput"]').on('change', function() {
+                const color = $(this).val();
+                const pickerId = $(this).attr('id').replace('Input', 'Picker');
+                if (/^#[0-9A-F]{6}$/i.test(color)) {
+                    $('#' + pickerId).css('background-color', color);
+                }
+            });
+            
+            // Save all settings with AJAX
+            $('#saveAllSettings').click(function() {
+                saveAllSettings();
+            });
+            
+            // Quick actions
+            $('#exportSettings').click(function() {
+                exportSettings();
+            });
+            
+            $('#importSettings').click(function() {
+                showAlert('info', 'Import feature coming soon!');
+            });
+            
+            $('#resetSettings').click(function() {
+                resetSettings();
+            });
+            
+            $('#clearCache').click(function() {
+                clearCache();
+            });
+            
+            // Functions
+            function showLoading() {
+                $('#loadingOverlay').fadeIn();
             }
+            
+            function hideLoading() {
+                $('#loadingOverlay').fadeOut();
+            }
+            
+            function showAlert(type, message) {
+                if (type === 'success') {
+                    toastr.success(message);
+                } else if (type === 'error') {
+                    toastr.error(message);
+                } else if (type === 'info') {
+                    toastr.info(message);
+                } else if (type === 'warning') {
+                    toastr.warning(message);
+                }
+            }
+            
+            async function saveAllSettings() {
+                const btn = $('#saveAllSettings');
+                const originalText = btn.html();
+                showLoading();
+                btn.html('<i class="las la-spinner la-spin mr-2"></i>Saving...').prop('disabled', true);
+                
+                try {
+                    // Collect all form data
+                    const formData = new FormData(document.getElementById('settingsForm'));
+                    
+                    // Remove file inputs from FormData as they're handled separately
+                    formData.delete('logoUpload');
+                    formData.delete('faviconUpload');
+                    
+                    // Add _method for Laravel to recognize it as PUT request
+                    formData.append('_method', 'PUT');
+                    
+                    console.log('FormData entries:');
+                    for (let pair of formData.entries()) {
+                        console.log(pair[0] + ': ' + pair[1]);
+                    }
+                    
+                    const response = await fetch('{{ route("schools.settings.update", $school->id) }}', {
+                        method: 'POST', // Use POST for FormData
+                        headers: {
+                            'X-CSRF-TOKEN': '{{ csrf_token() }}',
+                            'Accept': 'application/json'
+                            // Don't set Content-Type for FormData, let browser set it with boundary
+                        },
+                        body: formData
+                    });
+                    
+                    const result = await response.json();
+                    
+                    if (result.success) {
+                        showAlert('success', result.message);
+                    } else {
+                        showAlert('error', result.message);
+                    }
+                } catch (error) {
+                    showAlert('error', 'Error saving settings: ' + error.message);
+                    console.error('Error details:', error);
+                } finally {
+                    hideLoading();
+                    btn.html(originalText).prop('disabled', false);
+                }
+            }
+            
+            async function uploadFile(file, type) {
+                showLoading();
+                const formData = new FormData();
+                formData.append('file', file);
+                formData.append('type', type);
+                formData.append('_token', '{{ csrf_token() }}');
+                
+                try {
+                    const response = await fetch('{{ route("settings.upload") }}', {
+                        method: 'POST',
+                        body: formData
+                    });
+                    
+                    const result = await response.json();
+                    
+                    if (result.success) {
+                        const previewId = type + 'Preview';
+                        $('#' + previewId).html(`<img src="${result.file_path}" alt="${type}">`);
+                        showAlert('success', `${type} uploaded successfully!`);
+                        
+                        // Save the file path to settings
+                        const settingKey = `setting_general_${type}`;
+                        $('input[name="' + settingKey + '"]').val(result.file_path);
+                    } else {
+                        showAlert('error', result.message);
+                    }
+                } catch (error) {
+                    showAlert('error', 'Error uploading file: ' + error.message);
+                } finally {
+                    hideLoading();
+                }
+            }
+            
+            async function exportSettings() {
+                showLoading();
+                try {
+                    const response = await fetch('{{ route("settings.export") }}', {
+                        method: 'POST',
+                        headers: {
+                            'X-CSRF-TOKEN': '{{ csrf_token() }}',
+                            'Accept': 'application/json'
+                        }
+                    });
+                    
+                    const data = await response.json();
+                    
+                    // Create download link
+                    const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(data, null, 2));
+                    const downloadAnchorNode = document.createElement('a');
+                    downloadAnchorNode.setAttribute("href", dataStr);
+                    downloadAnchorNode.setAttribute("download", "settings_export_" + new Date().toISOString().slice(0,10) + ".json");
+                    document.body.appendChild(downloadAnchorNode);
+                    downloadAnchorNode.click();
+                    downloadAnchorNode.remove();
+                    
+                    showAlert('success', 'Settings exported successfully!');
+                } catch (error) {
+                    showAlert('error', 'Error exporting settings: ' + error.message);
+                } finally {
+                    hideLoading();
+                }
+            }
+            
+            async function resetSettings() {
+                if (confirm('Are you sure you want to reset all settings to default? This action cannot be undone.')) {
+                    showLoading();
+                    try {
+                        const response = await fetch('{{ route("settings.reset") }}', {
+                            method: 'POST',
+                            headers: {
+                                'X-CSRF-TOKEN': '{{ csrf_token() }}',
+                                'Accept': 'application/json'
+                            }
+                        });
+                        
+                        const result = await response.json();
+                        
+                        if (result.success) {
+                            showAlert('success', result.message);
+                            setTimeout(() => {
+                                location.reload();
+                            }, 1000);
+                        } else {
+                            showAlert('error', result.message);
+                        }
+                    } catch (error) {
+                        showAlert('error', 'Error resetting settings: ' + error.message);
+                    } finally {
+                        hideLoading();
+                    }
+                }
+            }
+            
+            async function clearCache() {
+                const btn = $('#clearCache');
+                const originalText = btn.html();
+                showLoading();
+                btn.html('<i class="las la-spinner la-spin mr-2"></i>Clearing...').prop('disabled', true);
+                
+                try {
+                    // Call your cache clearing endpoint
+                    const response = await fetch('/clear-cache', {
+                        method: 'POST',
+                        headers: {
+                            'X-CSRF-TOKEN': '{{ csrf_token() }}'
+                        }
+                    });
+                    
+                    const result = await response.json();
+                    
+                    if (result.success) {
+                        showAlert('success', 'Cache cleared successfully!');
+                    } else {
+                        showAlert('error', result.message);
+                    }
+                } catch (error) {
+                    showAlert('error', 'Error clearing cache: ' + error.message);
+                } finally {
+                    hideLoading();
+                    btn.html(originalText).prop('disabled', false);
+                }
+            }
+            
+            // Initialize toastr
+            toastr.options = {
+                "closeButton": true,
+                "progressBar": true,
+                "positionClass": "toast-top-right",
+                "timeOut": "5000"
+            };
         });
     </script>
     
     <!-- app JavaScript -->
     <script src="{{ asset('backend/assets/js/app.js') }}"></script>
+    <!-- Toastr JS -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/toastr.min.js"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/toastr.min.css">
     @endpush
 </x-app-layout>

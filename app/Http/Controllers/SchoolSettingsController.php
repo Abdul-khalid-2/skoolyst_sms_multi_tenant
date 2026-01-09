@@ -14,52 +14,43 @@ class SchoolSettingsController extends Controller
      */
     public function show(School $school)
     {
-        // Get all settings for this school
-        $settings = Setting::where('school_id', $school->id)
-            ->pluck('value', 'key')
-            ->toArray();
+        $schoolId = $school->id;
 
-        // Default settings if not exists
-        $defaultSettings = [
-            'current_academic_year' => date('Y') . '-' . (date('Y') + 1),
-            'default_class' => '1st',
-            'timezone' => 'Asia/Karachi',
-            'currency' => 'PKR',
-            'date_format' => 'd/m/Y',
-            'time_format' => '12',
-            'grading_system' => 'percentage',
-            'passing_percentage' => '40',
-            'enable_attendance' => '0',
-            'enable_exams' => '0',
-            'fee_due_days' => '10',
-            'late_fee_amount' => '500',
-            'late_fee_type' => 'fixed',
-            'enable_partial_payment' => '0',
-            'enable_online_payment' => '0',
-            'enable_fee_waiver' => '0',
-            'enable_sibling_discount' => '0',
-            'enable_early_payment_discount' => '0',
-            'enable_scholarship' => '0',
-            'enable_parent_portal' => '0',
-            'enable_student_portal' => '0',
-            'enable_sms_notifications' => '0',
-            'enable_teacher_portal' => '0',
-            'enable_attendance_tracking' => '0',
-            'enable_library' => '0',
-            'enable_inventory' => '0',
-            'enable_transport' => '0',
-            'enable_two_factor' => '0',
-            'enable_audit_log' => '0',
-            'primary_color' => '#007bff',
-            'secondary_color' => '#6c757d',
-            'session_timeout' => '30',
-            'max_login_attempts' => '5',
-        ];
+        // Get all settings for the school
+        $settings = Setting::where('school_id', $schoolId)->get();
 
-        // Merge with existing settings
-        $settings = array_merge($defaultSettings, $settings);
+        // Get school info
+        $school = School::find($schoolId);
 
-        return view('dashboard.schools.settings', compact('school', 'settings'));
+        // Group settings by category
+        $groupedSettings = [];
+        foreach ($settings as $setting) {
+            // Extract the actual value from the array
+            $value = $setting->value;
+
+            // Check if the value is JSON encoded
+            if (is_string($value) && json_decode($value) !== null) {
+                $value = json_decode($value, true);
+            }
+
+            // If value is an array, extract the first value
+            if (is_array($value) && !empty($value)) {
+                $value = reset($value); // Get first element
+            }
+
+            // Parse the key to get category and field name
+            $keyParts = explode('_', $setting->key, 2);
+
+            if (count($keyParts) === 2) {
+                $category = $keyParts[0]; // e.g., "general"
+                $field = $keyParts[1];    // e.g., "school_name"
+                $groupedSettings[$category][$field] = $value;
+            } else {
+                // If no underscore found, use as-is
+                $groupedSettings['other'][$setting->key] = $value;
+            }
+        }
+        return view('dashboard.schools.settings', compact('school', 'groupedSettings'));
     }
 
     /**
@@ -67,77 +58,47 @@ class SchoolSettingsController extends Controller
      */
     public function update(Request $request, School $school)
     {
+
+        $schoolId = $school->id;
+
         try {
             DB::beginTransaction();
 
-            $allSettings = $request->except(['_token', '_method']);
-
-            // Define all checkbox fields with their default values (0 for unchecked)
-            $checkboxFields = [
-                'enable_attendance',
-                'enable_exams',
-                'enable_partial_payment',
-                'enable_online_payment',
-                'enable_fee_waiver',
-                'enable_sibling_discount',
-                'enable_early_payment_discount',
-                'enable_scholarship',
-                'enable_parent_portal',
-                'enable_student_portal',
-                'enable_sms_notifications',
-                'enable_teacher_portal',
-                'enable_attendance_tracking',
-                'enable_library',
-                'enable_inventory',
-                'enable_transport',
-                'enable_two_factor',
-                'enable_audit_log'
-            ];
-
-            // Initialize all checkbox fields to '0' first
-            foreach ($checkboxFields as $field) {
-                $allSettings[$field] = '0';
-            }
-
-            // Now override with submitted values if they exist
+            // Process all form data
             foreach ($request->all() as $key => $value) {
-                if (in_array($key, $checkboxFields)) {
-                    $allSettings[$key] = $value == '1' ? '1' : '0';
-                }
-            }
-
-            // Handle terms array
-            if ($request->has('terms')) {
-                $allSettings['terms'] = json_encode($request->terms);
-            } else {
-                $allSettings['terms'] = json_encode([]);
-            }
-
-            // Save all settings
-            foreach ($allSettings as $key => $value) {
-                // Convert arrays to JSON
-                if (is_array($value)) {
-                    $value = json_encode($value);
+                // Skip CSRF token and non-setting fields
+                if ($key === '_token' || $key === '_method') {
+                    continue;
                 }
 
-                Setting::updateOrCreate(
-                    [
-                        'school_id' => $school->id,
-                        'key' => $key
-                    ],
-                    ['value' => $value]
-                );
+                // Check if it's a setting field (starts with setting_)
+                if (str_starts_with($key, 'setting_')) {
+                    $settingKey = str_replace('setting_', '', $key);
+
+                    Setting::updateOrCreate(
+                        [
+                            'school_id' => $schoolId,
+                            'key' => $settingKey
+                        ],
+                        [
+                            'value' => $value ?: ''
+                        ]
+                    );
+                }
             }
 
             DB::commit();
 
-            return redirect()->route('schools.settings.show', $school)
-                ->with('success', 'Settings updated successfully!');
+            return response()->json([
+                'success' => true,
+                'message' => 'Settings saved successfully!'
+            ]);
         } catch (\Exception $e) {
             DB::rollBack();
-
-            return redirect()->back()
-                ->with('error', 'Error updating settings: ' . $e->getMessage());
+            return response()->json([
+                'success' => false,
+                'message' => 'Error saving settings: ' . $e->getMessage()
+            ], 500);
         }
     }
 }

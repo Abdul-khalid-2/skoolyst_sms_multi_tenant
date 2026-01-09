@@ -106,12 +106,15 @@
                                             <i class="las la-eye"></i>
                                         </a>
                                         
-                                        <!-- Settings -->
-                                        <a href="{{ route('schools.settings.show', $school->id) }}"
-                                            class="btn btn-sm btn-secondary mr-2"
-                                            data-toggle="tooltip" title="Settings">
-                                            <i class="las la-cog"></i>
-                                        </a>
+                                        @if (auth()->user()->hasRole('superadmin'))
+                                             <!-- Settings -->
+                                            <a href="{{ route('schools.settings.show', $school->id) }}"
+                                                class="btn btn-sm btn-secondary mr-2"
+                                                data-toggle="tooltip" title="Settings">
+                                                <i class="las la-cog"></i>
+                                            </a>
+                                        @endif
+                                       
                                         
                                         <!-- Activation -->
                                         <a href="{{ route('schools.activation', $school->id) }}"
