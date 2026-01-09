@@ -1,3 +1,4 @@
+<!-- resources/views/dashboard/academic/subjects/create.blade.php -->
 <x-app-layout>
     @push('css')
     <link rel="stylesheet" href="{{ asset('backend/assets/css/backend-plugin.min.css') }}">
@@ -16,14 +17,20 @@
                             <h4 class="card-title">Create New Subject</h4>
                             <p class="mb-0">Add a new subject to the academic curriculum</p>
                         </div>
-                        <a href="#" class="btn btn-primary">
+                        <a href="{{ route('subjects.index') }}" class="btn btn-primary">
                             <i class="las la-arrow-left mr-2"></i> Back to Subjects
                         </a>
                     </div>
                     <div class="card-body">
-                        <form action="#" method="POST">
+                        <form action="{{ route('subjects.store') }}" method="POST">
                             @csrf
                             
+                            @if(session('error'))
+                                <div class="alert alert-danger mb-4">
+                                    <i class="las la-exclamation-triangle mr-2"></i>{{ session('error') }}
+                                </div>
+                            @endif
+
                             <!-- Subject Information -->
                             <div class="row">
                                 <div class="col-md-12">
@@ -35,8 +42,12 @@
                                 <div class="col-md-6">
                                     <div class="form-group">
                                         <label>Subject Name *</label>
-                                        <input type="text" name="name" class="form-control" 
-                                               placeholder="e.g., Mathematics, English Language, Physics" required>
+                                        <input type="text" name="name" class="form-control @error('name') is-invalid @enderror" 
+                                               placeholder="e.g., Mathematics, English Language, Physics" 
+                                               value="{{ old('name') }}" required>
+                                        @error('name')
+                                            <span class="invalid-feedback">{{ $message }}</span>
+                                        @enderror
                                         <small class="form-text text-muted">Full name of the subject</small>
                                     </div>
                                 </div>
@@ -44,8 +55,12 @@
                                 <div class="col-md-6">
                                     <div class="form-group">
                                         <label>Subject Code *</label>
-                                        <input type="text" name="code" class="form-control" 
-                                               placeholder="e.g., MATH-101, ENG-102" required>
+                                        <input type="text" name="code" class="form-control @error('code') is-invalid @enderror" 
+                                               placeholder="e.g., MATH-101, ENG-102" 
+                                               value="{{ old('code') }}" required>
+                                        @error('code')
+                                            <span class="invalid-feedback">{{ $message }}</span>
+                                        @enderror
                                         <small class="form-text text-muted">Unique code for identification</small>
                                     </div>
                                 </div>
@@ -53,13 +68,17 @@
                                 <div class="col-md-6">
                                     <div class="form-group">
                                         <label>Subject Type *</label>
-                                        <select name="type" class="form-control" required>
-                                            <option value="theory" selected>Theory</option>
-                                            <option value="practical">Practical</option>
-                                            <option value="both">Theory & Practical</option>
-                                            <option value="project">Project Based</option>
-                                            <option value="activity">Activity Based</option>
+                                        <select name="type" class="form-control @error('type') is-invalid @enderror" required>
+                                            <option value="">Select Type</option>
+                                            <option value="theory" {{ old('type') == 'theory' ? 'selected' : 'selected' }}>Theory</option>
+                                            <option value="practical" {{ old('type') == 'practical' ? 'selected' : '' }}>Practical</option>
+                                            <option value="both" {{ old('type') == 'both' ? 'selected' : '' }}>Theory & Practical</option>
+                                            <option value="project" {{ old('type') == 'project' ? 'selected' : '' }}>Project Based</option>
+                                            <option value="activity" {{ old('type') == 'activity' ? 'selected' : '' }}>Activity Based</option>
                                         </select>
+                                        @error('type')
+                                            <span class="invalid-feedback">{{ $message }}</span>
+                                        @enderror
                                     </div>
                                 </div>
                                 
@@ -68,15 +87,15 @@
                                         <label>Subject Category</label>
                                         <select name="category" class="form-control">
                                             <option value="">Select Category</option>
-                                            <option value="language">Language</option>
-                                            <option value="science">Science & Mathematics</option>
-                                            <option value="social">Social Studies</option>
-                                            <option value="arts">Arts & Creative</option>
-                                            <option value="computer">Computer & IT</option>
-                                            <option value="islamic">Islamic Studies</option>
-                                            <option value="physical">Physical Education</option>
-                                            <option value="vocational">Vocational</option>
-                                            <option value="other">Other</option>
+                                            <option value="language" {{ old('category') == 'language' ? 'selected' : '' }}>Language</option>
+                                            <option value="science" {{ old('category') == 'science' ? 'selected' : '' }}>Science & Mathematics</option>
+                                            <option value="social" {{ old('category') == 'social' ? 'selected' : '' }}>Social Studies</option>
+                                            <option value="arts" {{ old('category') == 'arts' ? 'selected' : '' }}>Arts & Creative</option>
+                                            <option value="computer" {{ old('category') == 'computer' ? 'selected' : '' }}>Computer & IT</option>
+                                            <option value="islamic" {{ old('category') == 'islamic' ? 'selected' : '' }}>Islamic Studies</option>
+                                            <option value="physical" {{ old('category') == 'physical' ? 'selected' : '' }}>Physical Education</option>
+                                            <option value="vocational" {{ old('category') == 'vocational' ? 'selected' : '' }}>Vocational</option>
+                                            <option value="other" {{ old('category') == 'other' ? 'selected' : '' }}>Other</option>
                                         </select>
                                     </div>
                                 </div>
@@ -85,19 +104,24 @@
                                     <div class="form-group">
                                         <label>Credit Hours</label>
                                         <input type="number" name="credit_hours" class="form-control" 
-                                               placeholder="e.g., 3" min="0" max="10" step="0.5">
+                                               placeholder="e.g., 3" min="0" max="10" step="0.5"
+                                               value="{{ old('credit_hours') }}">
                                         <small class="form-text text-muted">Number of credit hours (if applicable)</small>
                                     </div>
                                 </div>
                                 
                                 <div class="col-md-6">
                                     <div class="form-group">
-                                        <label>Status</label>
-                                        <select name="status" class="form-control">
-                                            <option value="active" selected>Active</option>
-                                            <option value="inactive">Inactive</option>
-                                            <option value="draft">Draft</option>
+                                        <label>Status *</label>
+                                        <select name="status" class="form-control @error('status') is-invalid @enderror" required>
+                                            <option value="">Select Status</option>
+                                            <option value="active" {{ old('status') == 'active' ? 'selected' : 'selected' }}>Active</option>
+                                            <option value="inactive" {{ old('status') == 'inactive' ? 'selected' : '' }}>Inactive</option>
+                                            <option value="archived" {{ old('status') == 'archived' ? 'selected' : '' }}>Archived</option>
                                         </select>
+                                        @error('status')
+                                            <span class="invalid-feedback">{{ $message }}</span>
+                                        @enderror
                                     </div>
                                 </div>
                                 
@@ -105,7 +129,7 @@
                                     <div class="form-group">
                                         <label>Short Description</label>
                                         <textarea name="short_description" class="form-control" rows="2" 
-                                                  placeholder="Brief description of the subject"></textarea>
+                                                  placeholder="Brief description of the subject">{{ old('short_description') }}</textarea>
                                     </div>
                                 </div>
                             </div>
@@ -123,81 +147,89 @@
                                     <div class="card">
                                         <div class="card-body">
                                             <div class="row">
-                                                <!-- Pre-Primary Classes -->
-                                                <div class="col-md-4 mb-4">
-                                                    <h6 class="mb-3">Pre-Primary Section</h6>
-                                                    <div class="custom-control custom-checkbox mb-2">
-                                                        <input type="checkbox" class="custom-control-input" id="class_playgroup" name="classes[]" value="playgroup">
-                                                        <label class="custom-control-label" for="class_playgroup">Play Group</label>
-                                                    </div>
-                                                    <div class="custom-control custom-checkbox mb-2">
-                                                        <input type="checkbox" class="custom-control-input" id="class_nursery" name="classes[]" value="nursery">
-                                                        <label class="custom-control-label" for="class_nursery">Nursery</label>
-                                                    </div>
-                                                    <div class="custom-control custom-checkbox">
-                                                        <input type="checkbox" class="custom-control-input" id="class_kg" name="classes[]" value="kg">
-                                                        <label class="custom-control-label" for="class_kg">Kindergarten (KG)</label>
-                                                    </div>
-                                                </div>
+                                                <!-- Group classes by level -->
+                                                @php
+                                                    $primaryClasses = $classes->filter(function($class) {
+                                                        return preg_match('/Class\s+[1-5]\b/i', $class->name) ||
+                                                            preg_match('/\b(Play|Nursery|KG|Kindergarten)\b/i', $class->name);
+                                                    });
+
+                                                    $middleClasses = $classes->filter(function($class) {
+                                                        return preg_match('/Class\s+[6-8]\b/i', $class->name);
+                                                    });
+
+                                                    $secondaryClasses = $classes->filter(function($class) {
+                                                        return preg_match('/Class\s+(9|10)\b/i', $class->name) ||
+                                                            preg_match('/O\s*Level|A\s*Level|Cambridge/i', $class->name);
+                                                    });
+
+                                                    
+                                                    $otherClasses = $classes->filter(function($class) use ($primaryClasses, $middleClasses, $secondaryClasses) {
+                                                        return !$primaryClasses->contains($class) && 
+                                                               !$middleClasses->contains($class) && 
+                                                               !$secondaryClasses->contains($class);
+                                                    });
+                                                @endphp
                                                 
-                                                <!-- Primary Classes -->
-                                                <div class="col-md-4 mb-4">
-                                                    <h6 class="mb-3">Primary Section (Class 1-5)</h6>
-                                                    <div class="custom-control custom-checkbox mb-2">
-                                                        <input type="checkbox" class="custom-control-input" id="class1" name="classes[]" value="class1" checked>
-                                                        <label class="custom-control-label" for="class1">Class 1</label>
+                                                @if($primaryClasses->isNotEmpty())
+                                                    <div class="col-md-4 mb-4">
+                                                        <h6 class="mb-3">Pre-Primary & Primary</h6>
+                                                        @foreach($primaryClasses as $class)
+                                                            <div class="custom-control custom-checkbox mb-2">
+                                                                <input type="checkbox" class="custom-control-input" 
+                                                                       id="class_{{ $class->id }}" 
+                                                                       name="classes[]" 
+                                                                       value="{{ $class->id }}"
+                                                                       {{ in_array($class->id, old('classes', [])) ? 'checked' : '' }}>
+                                                                <label class="custom-control-label" for="class_{{ $class->id }}">
+                                                                    {{ $class->name }}
+                                                                </label>
+                                                            </div>
+                                                        @endforeach
                                                     </div>
-                                                    <div class="custom-control custom-checkbox mb-2">
-                                                        <input type="checkbox" class="custom-control-input" id="class2" name="classes[]" value="class2" checked>
-                                                        <label class="custom-control-label" for="class2">Class 2</label>
-                                                    </div>
-                                                    <div class="custom-control custom-checkbox mb-2">
-                                                        <input type="checkbox" class="custom-control-input" id="class3" name="classes[]" value="class3" checked>
-                                                        <label class="custom-control-label" for="class3">Class 3</label>
-                                                    </div>
-                                                    <div class="custom-control custom-checkbox mb-2">
-                                                        <input type="checkbox" class="custom-control-input" id="class4" name="classes[]" value="class4">
-                                                        <label class="custom-control-label" for="class4">Class 4</label>
-                                                    </div>
-                                                    <div class="custom-control custom-checkbox">
-                                                        <input type="checkbox" class="custom-control-input" id="class5" name="classes[]" value="class5">
-                                                        <label class="custom-control-label" for="class5">Class 5</label>
-                                                    </div>
-                                                </div>
+                                                @endif
                                                 
-                                                <!-- Middle & Secondary -->
-                                                <div class="col-md-4 mb-4">
-                                                    <h6 class="mb-3">Middle & Secondary</h6>
-                                                    <div class="custom-control custom-checkbox mb-2">
-                                                        <input type="checkbox" class="custom-control-input" id="class6" name="classes[]" value="class6">
-                                                        <label class="custom-control-label" for="class6">Class 6</label>
+                                                @if($middleClasses->isNotEmpty())
+                                                    <div class="col-md-4 mb-4">
+                                                        <h6 class="mb-3">Middle Section</h6>
+                                                        @foreach($middleClasses as $class)
+                                                            <div class="custom-control custom-checkbox mb-2">
+                                                                <input type="checkbox" class="custom-control-input" 
+                                                                       id="class_{{ $class->id }}" 
+                                                                       name="classes[]" 
+                                                                       value="{{ $class->id }}"
+                                                                       {{ in_array($class->id, old('classes', [])) ? 'checked' : '' }}>
+                                                                <label class="custom-control-label" for="class_{{ $class->id }}">
+                                                                    {{ $class->name }}
+                                                                </label>
+                                                            </div>
+                                                        @endforeach
                                                     </div>
-                                                    <div class="custom-control custom-checkbox mb-2">
-                                                        <input type="checkbox" class="custom-control-input" id="class7" name="classes[]" value="class7">
-                                                        <label class="custom-control-label" for="class7">Class 7</label>
+                                                @endif
+                                                
+                                                @if($secondaryClasses->isNotEmpty())
+                                                    <div class="col-md-4 mb-4">
+                                                        <h6 class="mb-3">Secondary & Cambridge</h6>
+                                                        @foreach($secondaryClasses as $class)
+                                                            <div class="custom-control custom-checkbox mb-2">
+                                                                <input type="checkbox" class="custom-control-input" 
+                                                                       id="class_{{ $class->id }}" 
+                                                                       name="classes[]" 
+                                                                       value="{{ $class->id }}"
+                                                                       {{ in_array($class->id, old('classes', [])) ? 'checked' : '' }}>
+                                                                <label class="custom-control-label" for="class_{{ $class->id }}">
+                                                                    {{ $class->name }}
+                                                                </label>
+                                                            </div>
+                                                        @endforeach
                                                     </div>
-                                                    <div class="custom-control custom-checkbox mb-2">
-                                                        <input type="checkbox" class="custom-control-input" id="class8" name="classes[]" value="class8">
-                                                        <label class="custom-control-label" for="class8">Class 8</label>
-                                                    </div>
-                                                    <div class="custom-control custom-checkbox mb-2">
-                                                        <input type="checkbox" class="custom-control-input" id="class9" name="classes[]" value="class9">
-                                                        <label class="custom-control-label" for="class9">Class 9</label>
-                                                    </div>
-                                                    <div class="custom-control custom-checkbox">
-                                                        <input type="checkbox" class="custom-control-input" id="class10" name="classes[]" value="class10">
-                                                        <label class="custom-control-label" for="class10">Class 10</label>
-                                                    </div>
-                                                </div>
+                                                @endif
                                             </div>
                                             
                                             <!-- Quick Select Buttons -->
                                             <div class="mt-3">
-                                                <button type="button" class="btn btn-sm btn-outline-primary mr-2" id="selectAllPrimary">
-                                                    Select All Primary
-                                                </button>
-                                                <button type="button" class="btn btn-sm btn-outline-primary mr-2" id="selectAllSecondary">
-                                                    Select All Secondary
+                                                <button type="button" class="btn btn-sm btn-outline-primary mr-2" id="selectAll">
+                                                    Select All
                                                 </button>
                                                 <button type="button" class="btn btn-sm btn-outline-secondary" id="clearAll">
                                                     Clear All
@@ -220,7 +252,8 @@
                                     <div class="form-group">
                                         <label>Total Marks</label>
                                         <input type="number" name="total_marks" class="form-control" 
-                                               placeholder="e.g., 100" min="0" max="500">
+                                               placeholder="e.g., 100" min="0" max="500"
+                                               value="{{ old('total_marks') }}">
                                         <small class="form-text text-muted">Maximum marks for this subject</small>
                                     </div>
                                 </div>
@@ -229,7 +262,8 @@
                                     <div class="form-group">
                                         <label>Passing Marks</label>
                                         <input type="number" name="passing_marks" class="form-control" 
-                                               placeholder="e.g., 33" min="0" max="500">
+                                               placeholder="e.g., 33" min="0" max="500"
+                                               value="{{ old('passing_marks') }}">
                                         <small class="form-text text-muted">Minimum marks required to pass</small>
                                     </div>
                                 </div>
@@ -238,7 +272,7 @@
                                     <div class="form-group">
                                         <label>Weekly Periods</label>
                                         <input type="number" name="weekly_periods" class="form-control" 
-                                               value="5" min="1" max="20">
+                                               value="{{ old('weekly_periods', 5) }}" min="1" max="20">
                                         <small class="form-text text-muted">Number of periods per week</small>
                                     </div>
                                 </div>
@@ -247,14 +281,15 @@
                                     <div class="form-group">
                                         <label>Period Duration (minutes)</label>
                                         <input type="number" name="period_duration" class="form-control" 
-                                               value="40" min="15" max="120">
+                                               value="{{ old('period_duration', 40) }}" min="15" max="120">
                                     </div>
                                 </div>
                                 
                                 <div class="col-md-12">
                                     <div class="custom-control custom-checkbox">
                                         <input type="checkbox" class="custom-control-input" 
-                                               id="is_optional" name="is_optional">
+                                               id="is_optional" name="is_optional"
+                                               {{ old('is_optional') ? 'checked' : '' }}>
                                         <label class="custom-control-label" for="is_optional">
                                             This is an optional/elective subject
                                         </label>
@@ -265,7 +300,8 @@
                                 <div class="col-md-12 mt-3">
                                     <div class="custom-control custom-checkbox">
                                         <input type="checkbox" class="custom-control-input" 
-                                               id="has_lab" name="has_lab">
+                                               id="has_lab" name="has_lab"
+                                               {{ old('has_lab') ? 'checked' : '' }}>
                                         <label class="custom-control-label" for="has_lab">
                                             This subject has laboratory work
                                         </label>
@@ -293,12 +329,12 @@
                                         <label>Default Teacher</label>
                                         <select name="default_teacher_id" class="form-control">
                                             <option value="">No Default Teacher</option>
-                                            <option value="teacher1">Ms. Sarah Smith (Mathematics)</option>
-                                            <option value="teacher2">Mr. John Doe (English)</option>
-                                            <option value="teacher3">Ms. Emma Wilson (Science)</option>
-                                            <option value="teacher4">Mr. Ahmed Khan (Urdu)</option>
-                                            <option value="teacher5">Ms. Fatima Ali (Islamiat)</option>
-                                            <option value="teacher6">Mr. David Miller (Computer)</option>
+                                            @foreach($teachers as $teacher)
+                                                <option value="{{ $teacher->id }}" 
+                                                    {{ old('default_teacher_id') == $teacher->id ? 'selected' : '' }}>
+                                                    {{ $teacher->name }}
+                                                </option>
+                                            @endforeach
                                         </select>
                                         <small class="form-text text-muted">Primary teacher for this subject</small>
                                     </div>
@@ -309,8 +345,12 @@
                                         <label>Alternative Teacher</label>
                                         <select name="alternative_teacher_id" class="form-control">
                                             <option value="">No Alternative Teacher</option>
-                                            <option value="teacher7">Ms. Sophia Brown</option>
-                                            <option value="teacher8">Mr. Robert Taylor</option>
+                                            @foreach($teachers as $teacher)
+                                                <option value="{{ $teacher->id }}" 
+                                                    {{ old('alternative_teacher_id') == $teacher->id ? 'selected' : '' }}>
+                                                    {{ $teacher->name }}
+                                                </option>
+                                            @endforeach
                                         </select>
                                     </div>
                                 </div>
@@ -328,7 +368,7 @@
                                     <div class="form-group">
                                         <label>Syllabus / Course Outline</label>
                                         <textarea name="syllabus" class="form-control" rows="3" 
-                                                  placeholder="Brief syllabus or course outline"></textarea>
+                                                  placeholder="Brief syllabus or course outline">{{ old('syllabus') }}</textarea>
                                     </div>
                                 </div>
                                 
@@ -336,14 +376,15 @@
                                     <div class="form-group">
                                         <label>Learning Objectives</label>
                                         <textarea name="objectives" class="form-control" rows="3" 
-                                                  placeholder="Learning objectives for this subject"></textarea>
+                                                  placeholder="Learning objectives for this subject">{{ old('objectives') }}</textarea>
                                     </div>
                                 </div>
                                 
                                 <div class="col-md-12">
                                     <div class="custom-control custom-checkbox">
                                         <input type="checkbox" class="custom-control-input" 
-                                               id="enable_exams" name="enable_exams" checked>
+                                               id="enable_exams" name="enable_exams" 
+                                               {{ old('enable_exams', true) ? 'checked' : '' }}>
                                         <label class="custom-control-label" for="enable_exams">
                                             Enable exams for this subject
                                         </label>
@@ -353,7 +394,8 @@
                                 <div class="col-md-12 mt-2">
                                     <div class="custom-control custom-checkbox">
                                         <input type="checkbox" class="custom-control-input" 
-                                               id="enable_homework" name="enable_homework" checked>
+                                               id="enable_homework" name="enable_homework" 
+                                               {{ old('enable_homework', true) ? 'checked' : '' }}>
                                         <label class="custom-control-label" for="enable_homework">
                                             Enable homework/assignments
                                         </label>
@@ -425,12 +467,8 @@
             });
             
             // Quick select buttons
-            $('#selectAllPrimary').click(function() {
-                $('#class1, #class2, #class3, #class4, #class5').prop('checked', true);
-            });
-            
-            $('#selectAllSecondary').click(function() {
-                $('#class6, #class7, #class8, #class9, #class10').prop('checked', true);
+            $('#selectAll').click(function() {
+                $('input[name="classes[]"]').prop('checked', true);
             });
             
             $('#clearAll').click(function() {
@@ -445,6 +483,18 @@
                 if (totalMarks > 0 && passingMarks > totalMarks) {
                     alert('Passing marks cannot exceed total marks');
                     $(this).val('');
+                }
+            });
+            
+            // Auto-check lab for certain subject types
+            $('select[name="type"]').on('change', function() {
+                var type = $(this).val();
+                var hasLabCheckbox = $('#has_lab');
+                
+                if (type === 'practical' || type === 'both') {
+                    hasLabCheckbox.prop('checked', true);
+                } else if (type === 'theory') {
+                    hasLabCheckbox.prop('checked', false);
                 }
             });
         });

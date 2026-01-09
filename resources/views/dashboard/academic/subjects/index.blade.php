@@ -1,3 +1,4 @@
+<!-- resources/views/dashboard/academic/subjects/index.blade.php -->
 <x-app-layout>
     @push('css')
     <link rel="stylesheet" href="{{ asset('backend/assets/css/backend-plugin.min.css') }}">
@@ -11,11 +12,11 @@
         <!-- Page Header -->
         <div class="d-flex flex-wrap flex-wrap align-items-center justify-content-between mb-4">
             <div>
-                <h4 class="mb-3">Subjects Setup</h5>
+                <h4 class="mb-3">Subjects Setup</h4>
                 <p class="mb-0">Manage subjects and assign them to different classes</p>
                 <nav aria-label="breadcrumb">
                     <ol class="breadcrumb">
-                        <li class="breadcrumb-item"><a href="#">Dashboard</a></li>
+                        <li class="breadcrumb-item"><a href="{{ route('dashboard') }}">Dashboard</a></li>
                         <li class="breadcrumb-item"><a href="#">Academic</a></li>
                         <li class="breadcrumb-item active">Subjects</li>
                     </ol>
@@ -28,51 +29,76 @@
             </div>
         </div>
 
+        @if(session('success'))
+            <div class="alert alert-success alert-dismissible fade show" role="alert">
+                <i class="las la-check-circle mr-2"></i>{{ session('success') }}
+                <button type="button" class="close" data-dismiss="alert">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+        @endif
+
+        @if(session('error'))
+            <div class="alert alert-danger alert-dismissible fade show" role="alert">
+                <i class="las la-exclamation-triangle mr-2"></i>{{ session('error') }}
+                <button type="button" class="close" data-dismiss="alert">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+        @endif
+
         <!-- Filters -->
         <div class="card mb-4">
             <div class="card-body">
-                <div class="row">
-                    <div class="col-md-3">
-                        <div class="form-group">
-                            <label>Search Subject</label>
-                            <input type="text" class="form-control" placeholder="Search subject name or code">
+                <form action="{{ route('subjects.index') }}" method="GET">
+                    <div class="row">
+                        <div class="col-md-3">
+                            <div class="form-group">
+                                <label>Search Subject</label>
+                                <input type="text" name="search" class="form-control" 
+                                       placeholder="Search subject name or code"
+                                       value="{{ request('search') }}">
+                            </div>
+                        </div>
+                        <div class="col-md-3">
+                            <div class="form-group">
+                                <label>Subject Type</label>
+                                <select name="type" class="form-control">
+                                    <option value="">All Types</option>
+                                    <option value="theory" {{ request('type') == 'theory' ? 'selected' : '' }}>Theory</option>
+                                    <option value="practical" {{ request('type') == 'practical' ? 'selected' : '' }}>Practical</option>
+                                    <option value="both" {{ request('type') == 'both' ? 'selected' : '' }}>Both</option>
+                                    <option value="project" {{ request('type') == 'project' ? 'selected' : '' }}>Project</option>
+                                    <option value="activity" {{ request('type') == 'activity' ? 'selected' : '' }}>Activity</option>
+                                </select>
+                            </div>
+                        </div>
+                        <div class="col-md-3">
+                            <div class="form-group">
+                                <label>Class</label>
+                                <select name="class_id" class="form-control">
+                                    <option value="">All Classes</option>
+                                    @foreach($classes as $class)
+                                        <option value="{{ $class->id }}" 
+                                            {{ request('class_id') == $class->id ? 'selected' : '' }}>
+                                            {{ $class->name }}
+                                        </option>
+                                    @endforeach
+                                </select>
+                            </div>
+                        </div>
+                        <div class="col-md-3 d-flex align-items-end">
+                            <div class="form-group w-100">
+                                <button type="submit" class="btn btn-primary btn-block">Filter</button>
+                                @if(request()->hasAny(['search', 'type', 'class_id']))
+                                    <a href="{{ route('subjects.index') }}" class="btn btn-secondary btn-block mt-2">
+                                        Clear Filters
+                                    </a>
+                                @endif
+                            </div>
                         </div>
                     </div>
-                    <div class="col-md-3">
-                        <div class="form-group">
-                            <label>Subject Type</label>
-                            <select class="form-control">
-                                <option value="">All Types</option>
-                                <option value="theory">Theory</option>
-                                <option value="practical">Practical</option>
-                                <option value="both">Both</option>
-                            </select>
-                        </div>
-                    </div>
-                    <div class="col-md-3">
-                        <div class="form-group">
-                            <label>Class</label>
-                            <select class="form-control">
-                                <option value="">All Classes</option>
-                                <option value="class1">Class 1</option>
-                                <option value="class2">Class 2</option>
-                                <option value="class3">Class 3</option>
-                                <option value="class4">Class 4</option>
-                                <option value="class5">Class 5</option>
-                                <option value="class6">Class 6</option>
-                                <option value="class7">Class 7</option>
-                                <option value="class8">Class 8</option>
-                                <option value="class9">Class 9</option>
-                                <option value="class10">Class 10</option>
-                            </select>
-                        </div>
-                    </div>
-                    <div class="col-md-3 d-flex align-items-end">
-                        <div class="form-group w-100">
-                            <button class="btn btn-primary btn-block">Filter</button>
-                        </div>
-                    </div>
-                </div>
+                </form>
             </div>
         </div>
 
@@ -84,7 +110,7 @@
                         <div class="d-flex justify-content-between align-items-center">
                             <div>
                                 <h6 class="text-white mb-0">Total Subjects</h6>
-                                <h2 class="mb-0 text-white">45</h2>
+                                <h2 class="mb-0 text-white">{{ $subjects->count() }}</h2>
                             </div>
                             <div class="bg-white rounded p-3">
                                 <i class="las la-book-open fa-2x text-primary"></i>
@@ -98,8 +124,8 @@
                     <div class="card-body">
                         <div class="d-flex justify-content-between align-items-center">
                             <div>
-                                <h6 class="text-white mb-0">Theory Subjects</h6>
-                                <h2 class="mb-0 text-white">35</h2>
+                                <h6 class="text-white mb-0">Active Subjects</h6>
+                                <h2 class="mb-0 text-white">{{ $subjects->where('status', 'active')->count() }}</h2>
                             </div>
                             <div class="bg-white rounded p-3">
                                 <i class="las la-book-reader fa-2x text-success"></i>
@@ -114,7 +140,7 @@
                         <div class="d-flex justify-content-between align-items-center">
                             <div>
                                 <h6 class="text-white mb-0">Practical Subjects</h6>
-                                <h2 class="mb-0 text-white">10</h2>
+                                <h2 class="mb-0 text-white">{{ $subjects->where('type', 'practical')->count() }}</h2>
                             </div>
                             <div class="bg-white rounded p-3">
                                 <i class="las la-flask fa-2x text-info"></i>
@@ -128,8 +154,8 @@
                     <div class="card-body">
                         <div class="d-flex justify-content-between align-items-center">
                             <div>
-                                <h6 class="text-white mb-0">Active Classes</h6>
-                                <h2 class="mb-0 text-white">15</h2>
+                                <h6 class="text-white mb-0">Optional Subjects</h6>
+                                <h2 class="mb-0 text-white">{{ $subjects->where('is_optional', true)->count() }}</h2>
                             </div>
                             <div class="bg-white rounded p-3">
                                 <i class="las la-chalkboard-teacher fa-2x text-warning"></i>
@@ -146,427 +172,176 @@
                 <h5 class="card-title mb-0">All Subjects</h5>
             </div>
             <div class="card-body">
-                <div class="table-responsive">
-                    <table class="table table-hover">
-                        <thead>
-                            <tr>
-                                <th>#</th>
-                                <th>Subject Name</th>
-                                <th>Subject Code</th>
-                                <th>Type</th>
-                                <th>Classes Assigned</th>
-                                <th>Total Students</th>
-                                <th>Teachers</th>
-                                <th>Status</th>
-                                <th>Actions</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            <!-- Language Subjects -->
-                            <tr class="table-light">
-                                <td colspan="9"><strong>Language Subjects</strong></td>
-                            </tr>
-                            <tr>
-                                <td>1</td>
-                                <td>
-                                    <strong>English Language</strong>
-                                    <div><small class="text-muted">Core language subject</small></div>
-                                </td>
-                                <td><span class="badge badge-primary">ENG-101</span></td>
-                                <td><span class="badge badge-success">Theory</span></td>
-                                <td>
-                                    <div class="mb-1">
-                                        <span class="badge badge-info">Class 1-10</span>
-                                    </div>
-                                    <small class="text-muted">10 Classes</small>
-                                </td>
-                                <td><span class="badge badge-info">500 Students</span></td>
-                                <td>
-                                    <div class="d-flex flex-wrap">
-                                        <span class="badge badge-secondary mr-1 mb-1">Ms. Sarah</span>
-                                        <span class="badge badge-secondary mr-1 mb-1">Mr. John</span>
-                                    </div>
-                                </td>
-                                <td><span class="badge badge-success">Active</span></td>
-                                <td>
-                                    <div class="d-flex">
-                                        <a href="#" class="btn btn-sm btn-info mr-2" title="View Details">
-                                            <i class="las la-eye"></i>
-                                        </a>
-                                        <a href="#" class="btn btn-sm btn-primary mr-2" title="Edit">
-                                            <i class="las la-edit"></i>
-                                        </a>
-                                        <button class="btn btn-sm btn-warning mr-2" title="Deactivate" data-toggle="modal" data-target="#deactivateModal">
-                                            <i class="las la-toggle-off"></i>
-                                        </button>
-                                        <button class="btn btn-sm btn-danger" title="Delete" disabled>
-                                            <i class="las la-trash"></i>
-                                        </button>
-                                    </div>
-                                </td>
-                            </tr>
-                            <tr>
-                                <td>2</td>
-                                <td>
-                                    <strong>Urdu Language</strong>
-                                    <div><small class="text-muted">National language</small></div>
-                                </td>
-                                <td><span class="badge badge-primary">URD-102</span></td>
-                                <td><span class="badge badge-success">Theory</span></td>
-                                <td>
-                                    <div class="mb-1">
-                                        <span class="badge badge-info">Class 1-10</span>
-                                    </div>
-                                    <small class="text-muted">10 Classes</small>
-                                </td>
-                                <td><span class="badge badge-info">500 Students</span></td>
-                                <td>
-                                    <span class="badge badge-secondary">Mr. Ahmed</span>
-                                </td>
-                                <td><span class="badge badge-success">Active</span></td>
-                                <td>
-                                    <div class="d-flex">
-                                        <a href="#" class="btn btn-sm btn-info mr-2" title="View Details">
-                                            <i class="las la-eye"></i>
-                                        </a>
-                                        <a href="#" class="btn btn-sm btn-primary mr-2" title="Edit">
-                                            <i class="las la-edit"></i>
-                                        </a>
-                                        <button class="btn btn-sm btn-warning mr-2" title="Deactivate" data-toggle="modal" data-target="#deactivateModal">
-                                            <i class="las la-toggle-off"></i>
-                                        </button>
-                                        <button class="btn btn-sm btn-danger" title="Delete" disabled>
-                                            <i class="las la-trash"></i>
-                                        </button>
-                                    </div>
-                                </td>
-                            </tr>
-
-                            <!-- Science Subjects -->
-                            <tr class="table-light">
-                                <td colspan="9"><strong>Science & Mathematics</strong></td>
-                            </tr>
-                            <tr>
-                                <td>3</td>
-                                <td>
-                                    <strong>Mathematics</strong>
-                                    <div><small class="text-muted">Core subject</small></div>
-                                </td>
-                                <td><span class="badge badge-primary">MATH-201</span></td>
-                                <td><span class="badge badge-success">Theory</span></td>
-                                <td>
-                                    <div class="mb-1">
-                                        <span class="badge badge-info">Class 1-10</span>
-                                    </div>
-                                    <small class="text-muted">10 Classes</small>
-                                </td>
-                                <td><span class="badge badge-info">500 Students</span></td>
-                                <td>
-                                    <div class="d-flex flex-wrap">
-                                        <span class="badge badge-secondary mr-1 mb-1">Mr. David</span>
-                                        <span class="badge badge-secondary mr-1 mb-1">Ms. Emma</span>
-                                    </div>
-                                </td>
-                                <td><span class="badge badge-success">Active</span></td>
-                                <td>
-                                    <div class="d-flex">
-                                        <a href="#" class="btn btn-sm btn-info mr-2" title="View Details">
-                                            <i class="las la-eye"></i>
-                                        </a>
-                                        <a href="#" class="btn btn-sm btn-primary mr-2" title="Edit">
-                                            <i class="las la-edit"></i>
-                                        </a>
-                                        <button class="btn btn-sm btn-warning mr-2" title="Deactivate" data-toggle="modal" data-target="#deactivateModal">
-                                            <i class="las la-toggle-off"></i>
-                                        </button>
-                                        <button class="btn btn-sm btn-danger" title="Delete" disabled>
-                                            <i class="las la-trash"></i>
-                                        </button>
-                                    </div>
-                                </td>
-                            </tr>
-                            <tr>
-                                <td>4</td>
-                                <td>
-                                    <strong>General Science</strong>
-                                    <div><small class="text-muted">Class 1-5</small></div>
-                                </td>
-                                <td><span class="badge badge-primary">SCI-202</span></td>
-                                <td><span class="badge badge-info">Theory & Practical</span></td>
-                                <td>
-                                    <div class="mb-1">
-                                        <span class="badge badge-info">Class 1-5</span>
-                                    </div>
-                                    <small class="text-muted">5 Classes</small>
-                                </td>
-                                <td><span class="badge badge-info">250 Students</span></td>
-                                <td>
-                                    <span class="badge badge-secondary">Ms. Fatima</span>
-                                </td>
-                                <td><span class="badge badge-success">Active</span></td>
-                                <td>
-                                    <div class="d-flex">
-                                        <a href="#" class="btn btn-sm btn-info mr-2" title="View Details">
-                                            <i class="las la-eye"></i>
-                                        </a>
-                                        <a href="#" class="btn btn-sm btn-primary mr-2" title="Edit">
-                                            <i class="las la-edit"></i>
-                                        </a>
-                                        <button class="btn btn-sm btn-warning mr-2" title="Deactivate" data-toggle="modal" data-target="#deactivateModal">
-                                            <i class="las la-toggle-off"></i>
-                                        </button>
-                                        <button class="btn btn-sm btn-danger" title="Delete" disabled>
-                                            <i class="las la-trash"></i>
-                                        </button>
-                                    </div>
-                                </td>
-                            </tr>
-                            <tr>
-                                <td>5</td>
-                                <td>
-                                    <strong>Physics</strong>
-                                    <div><small class="text-muted">Class 9-10</small></div>
-                                </td>
-                                <td><span class="badge badge-primary">PHY-301</span></td>
-                                <td><span class="badge badge-info">Theory & Practical</span></td>
-                                <td>
-                                    <div class="mb-1">
-                                        <span class="badge badge-info">Class 9-10</span>
-                                    </div>
-                                    <small class="text-muted">2 Classes</small>
-                                </td>
-                                <td><span class="badge badge-info">100 Students</span></td>
-                                <td>
-                                    <span class="badge badge-secondary">Mr. Robert</span>
-                                </td>
-                                <td><span class="badge badge-success">Active</span></td>
-                                <td>
-                                    <div class="d-flex">
-                                        <a href="#" class="btn btn-sm btn-info mr-2" title="View Details">
-                                            <i class="las la-eye"></i>
-                                        </a>
-                                        <a href="#" class="btn btn-sm btn-primary mr-2" title="Edit">
-                                            <i class="las la-edit"></i>
-                                        </a>
-                                        <button class="btn btn-sm btn-warning mr-2" title="Deactivate" data-toggle="modal" data-target="#deactivateModal">
-                                            <i class="las la-toggle-off"></i>
-                                        </button>
-                                        <button class="btn btn-sm btn-danger" title="Delete" disabled>
-                                            <i class="las la-trash"></i>
-                                        </button>
-                                    </div>
-                                </td>
-                            </tr>
-
-                            <!-- Social Studies -->
-                            <tr class="table-light">
-                                <td colspan="9"><strong>Social Studies & Islamiat</strong></td>
-                            </tr>
-                            <tr>
-                                <td>6</td>
-                                <td>
-                                    <strong>Social Studies</strong>
-                                    <div><small class="text-muted">History & Geography</small></div>
-                                </td>
-                                <td><span class="badge badge-primary">SST-401</span></td>
-                                <td><span class="badge badge-success">Theory</span></td>
-                                <td>
-                                    <div class="mb-1">
-                                        <span class="badge badge-info">Class 4-8</span>
-                                    </div>
-                                    <small class="text-muted">5 Classes</small>
-                                </td>
-                                <td><span class="badge badge-info">250 Students</span></td>
-                                <td>
-                                    <span class="badge badge-secondary">Ms. Sophia</span>
-                                </td>
-                                <td><span class="badge badge-success">Active</span></td>
-                                <td>
-                                    <div class="d-flex">
-                                        <a href="#" class="btn btn-sm btn-info mr-2" title="View Details">
-                                            <i class="las la-eye"></i>
-                                        </a>
-                                        <a href="#" class="btn btn-sm btn-primary mr-2" title="Edit">
-                                            <i class="las la-edit"></i>
-                                        </a>
-                                        <button class="btn btn-sm btn-warning mr-2" title="Deactivate" data-toggle="modal" data-target="#deactivateModal">
-                                            <i class="las la-toggle-off"></i>
-                                        </button>
-                                        <button class="btn btn-sm btn-danger" title="Delete" disabled>
-                                            <i class="las la-trash"></i>
-                                        </button>
-                                    </div>
-                                </td>
-                            </tr>
-                            <tr>
-                                <td>7</td>
-                                <td>
-                                    <strong>Islamiat</strong>
-                                    <div><small class="text-muted">Islamic Studies</small></div>
-                                </td>
-                                <td><span class="badge badge-primary">ISL-402</span></td>
-                                <td><span class="badge badge-success">Theory</span></td>
-                                <td>
-                                    <div class="mb-1">
-                                        <span class="badge badge-info">Class 1-10</span>
-                                    </div>
-                                    <small class="text-muted">10 Classes</small>
-                                </td>
-                                <td><span class="badge badge-info">500 Students</span></td>
-                                <td>
-                                    <span class="badge badge-secondary">Mr. Usman</span>
-                                </td>
-                                <td><span class="badge badge-success">Active</span></td>
-                                <td>
-                                    <div class="d-flex">
-                                        <a href="#" class="btn btn-sm btn-info mr-2" title="View Details">
-                                            <i class="las la-eye"></i>
-                                        </a>
-                                        <a href="#" class="btn btn-sm btn-primary mr-2" title="Edit">
-                                            <i class="las la-edit"></i>
-                                        </a>
-                                        <button class="btn btn-sm btn-warning mr-2" title="Deactivate" data-toggle="modal" data-target="#deactivateModal">
-                                            <i class="las la-toggle-off"></i>
-                                        </button>
-                                        <button class="btn btn-sm btn-danger" title="Delete" disabled>
-                                            <i class="las la-trash"></i>
-                                        </button>
-                                    </div>
-                                </td>
-                            </tr>
-
-                            <!-- Computer & Arts -->
-                            <tr class="table-light">
-                                <td colspan="9"><strong>Computer & Creative Arts</strong></td>
-                            </tr>
-                            <tr>
-                                <td>8</td>
-                                <td>
-                                    <strong>Computer Science</strong>
-                                    <div><small class="text-muted">ICT Education</small></div>
-                                </td>
-                                <td><span class="badge badge-primary">COM-501</span></td>
-                                <td><span class="badge badge-info">Theory & Practical</span></td>
-                                <td>
-                                    <div class="mb-1">
-                                        <span class="badge badge-info">Class 3-10</span>
-                                    </div>
-                                    <small class="text-muted">8 Classes</small>
-                                </td>
-                                <td><span class="badge badge-info">400 Students</span></td>
-                                <td>
-                                    <span class="badge badge-secondary">Mr. Ali</span>
-                                </td>
-                                <td><span class="badge badge-success">Active</span></td>
-                                <td>
-                                    <div class="d-flex">
-                                        <a href="#" class="btn btn-sm btn-info mr-2" title="View Details">
-                                            <i class="las la-eye"></i>
-                                        </a>
-                                        <a href="#" class="btn btn-sm btn-primary mr-2" title="Edit">
-                                            <i class="las la-edit"></i>
-                                        </a>
-                                        <button class="btn btn-sm btn-warning mr-2" title="Deactivate" data-toggle="modal" data-target="#deactivateModal">
-                                            <i class="las la-toggle-off"></i>
-                                        </button>
-                                        <button class="btn btn-sm btn-danger" title="Delete" disabled>
-                                            <i class="las la-trash"></i>
-                                        </button>
-                                    </div>
-                                </td>
-                            </tr>
-                            <tr>
-                                <td>9</td>
-                                <td>
-                                    <strong>Art & Drawing</strong>
-                                    <div><small class="text-muted">Creative Arts</small></div>
-                                </td>
-                                <td><span class="badge badge-primary">ART-502</span></td>
-                                <td><span class="badge badge-warning">Practical</span></td>
-                                <td>
-                                    <div class="mb-1">
-                                        <span class="badge badge-info">Class 1-5</span>
-                                    </div>
-                                    <small class="text-muted">5 Classes</small>
-                                </td>
-                                <td><span class="badge badge-info">250 Students</span></td>
-                                <td>
-                                    <span class="badge badge-secondary">Ms. Aisha</span>
-                                </td>
-                                <td><span class="badge badge-success">Active</span></td>
-                                <td>
-                                    <div class="d-flex">
-                                        <a href="#" class="btn btn-sm btn-info mr-2" title="View Details">
-                                            <i class="las la-eye"></i>
-                                        </a>
-                                        <a href="#" class="btn btn-sm btn-primary mr-2" title="Edit">
-                                            <i class="las la-edit"></i>
-                                        </a>
-                                        <button class="btn btn-sm btn-warning mr-2" title="Deactivate" data-toggle="modal" data-target="#deactivateModal">
-                                            <i class="las la-toggle-off"></i>
-                                        </button>
-                                        <button class="btn btn-sm btn-danger" title="Delete">
-                                            <i class="las la-trash"></i>
-                                        </button>
-                                    </div>
-                                </td>
-                            </tr>
-
-                            <!-- Inactive Subject Example -->
-                            <tr>
-                                <td>10</td>
-                                <td>
-                                    <strong>French Language</strong>
-                                    <div><small class="text-muted">Optional subject</small></div>
-                                </td>
-                                <td><span class="badge badge-secondary">FRE-601</span></td>
-                                <td><span class="badge badge-success">Theory</span></td>
-                                <td>
-                                    <div class="mb-1">
-                                        <span class="badge badge-secondary">Class 9-10</span>
-                                    </div>
-                                    <small class="text-muted">2 Classes</small>
-                                </td>
-                                <td><span class="badge badge-secondary">0 Students</span></td>
-                                <td>
-                                    <span class="badge badge-light">No Teacher</span>
-                                </td>
-                                <td><span class="badge badge-danger">Inactive</span></td>
-                                <td>
-                                    <div class="d-flex">
-                                        <a href="#" class="btn btn-sm btn-info mr-2" title="View Details">
-                                            <i class="las la-eye"></i>
-                                        </a>
-                                        <a href="#" class="btn btn-sm btn-primary mr-2" title="Edit">
-                                            <i class="las la-edit"></i>
-                                        </a>
-                                        <button class="btn btn-sm btn-success mr-2" title="Activate">
-                                            <i class="las la-toggle-on"></i>
-                                        </button>
-                                        <button class="btn btn-sm btn-danger" title="Delete">
-                                            <i class="las la-trash"></i>
-                                        </button>
-                                    </div>
-                                </td>
-                            </tr>
-                        </tbody>
-                    </table>
-                </div>
-
-                <!-- Pagination -->
-                <nav aria-label="Page navigation">
-                    <ul class="pagination justify-content-center mt-4">
-                        <li class="page-item disabled">
-                            <a class="page-link" href="#" tabindex="-1">Previous</a>
-                        </li>
-                        <li class="page-item active"><a class="page-link" href="#">1</a></li>
-                        <li class="page-item"><a class="page-link" href="#">2</a></li>
-                        <li class="page-item"><a class="page-link" href="#">3</a></li>
-                        <li class="page-item">
-                            <a class="page-link" href="#">Next</a>
-                        </li>
-                    </ul>
-                </nav>
+                @if($subjects->isEmpty())
+                    <div class="text-center py-5">
+                        <i class="las la-book text-muted" style="font-size: 48px;"></i>
+                        <h5 class="mt-3">No Subjects Found</h5>
+                        <p class="text-muted">Start by adding your first subject</p>
+                        <a href="{{ route('subjects.create') }}" class="btn btn-primary mt-2">
+                            <i class="las la-plus mr-2"></i>Add Subject
+                        </a>
+                    </div>
+                @else
+                    <div class="table-responsive">
+                        <table class="table table-hover">
+                            <thead>
+                                <tr>
+                                    <th>#</th>
+                                    <th>Subject Name</th>
+                                    <th>Subject Code</th>
+                                    <th>Type</th>
+                                    <th>Classes Assigned</th>
+                                    <th>Teachers</th>
+                                    <th>Status</th>
+                                    <th>Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @php
+                                    $categories = [
+                                        'language' => 'Language Subjects',
+                                        'science' => 'Science & Mathematics',
+                                        'social' => 'Social Studies',
+                                        'arts' => 'Arts & Creative',
+                                        'computer' => 'Computer & IT',
+                                        'islamic' => 'Islamic Studies',
+                                        'physical' => 'Physical Education',
+                                        'vocational' => 'Vocational',
+                                        '' => 'Other Subjects'
+                                    ];
+                                @endphp
+                                
+                                @foreach($categories as $categoryKey => $categoryTitle)
+                                    @php
+                                        $categorySubjects = $groupedSubjects->get($categoryKey, collect());
+                                    @endphp
+                                    
+                                    @if($categorySubjects->isNotEmpty())
+                                        <tr class="table-light">
+                                            <td colspan="8"><strong>{{ $categoryTitle }}</strong></td>
+                                        </tr>
+                                        
+                                        @foreach($categorySubjects as $index => $subject)
+                                            @php
+                                                $typeBadges = [
+                                                    'theory' => 'badge-success',
+                                                    'practical' => 'badge-warning',
+                                                    'both' => 'badge-info',
+                                                    'project' => 'badge-primary',
+                                                    'activity' => 'badge-secondary'
+                                                ];
+                                            @endphp
+                                            
+                                            <tr>
+                                                <td>{{ $index + 1 }}</td>
+                                                <td>
+                                                    <strong>{{ $subject->name }}</strong>
+                                                    @if($subject->short_description)
+                                                        <div><small class="text-muted">{{ Str::limit($subject->short_description, 50) }}</small></div>
+                                                    @endif
+                                                    @if($subject->is_optional)
+                                                        <div><small class="text-warning">Optional Subject</small></div>
+                                                    @endif
+                                                    @if($subject->has_lab)
+                                                        <div><small class="text-info"><i class="las la-flask"></i> Lab Included</small></div>
+                                                    @endif
+                                                </td>
+                                                <td>
+                                                    <span class="badge badge-primary">{{ $subject->code }}</span>
+                                                </td>
+                                                <td>
+                                                    <span class="badge {{ $typeBadges[$subject->type] ?? 'badge-secondary' }}">
+                                                        {{ ucfirst($subject->type) }}
+                                                    </span>
+                                                </td>
+                                                <td>
+                                                    <div class="mb-1">
+                                                        @if($subject->classes_count > 0)
+                                                            @php
+                                                                $classNames = $subject->classes->pluck('name')->take(2)->implode(', ');
+                                                            @endphp
+                                                            <span class="badge badge-info">{{ $subject->classes_count }} Classes</span>
+                                                        @else
+                                                            <span class="badge badge-secondary">No Classes</span>
+                                                        @endif
+                                                    </div>
+                                                    @if($subject->classes_count > 0)
+                                                        <small class="text-muted">{{ $classNames }}{{ $subject->classes_count > 2 ? '...' : '' }}</small>
+                                                    @endif
+                                                </td>
+                                                <td>
+                                                    @if($subject->defaultTeacher)
+                                                        <span class="badge badge-secondary">{{ $subject->defaultTeacher->name }}</span>
+                                                    @else
+                                                        <span class="badge badge-light">No Teacher</span>
+                                                    @endif
+                                                </td>
+                                                <td>
+                                                    @if($subject->status === 'active')
+                                                        <span class="badge badge-success">Active</span>
+                                                    @elseif($subject->status === 'inactive')
+                                                        <span class="badge badge-danger">Inactive</span>
+                                                    @else
+                                                        <span class="badge badge-secondary">{{ ucfirst($subject->status) }}</span>
+                                                    @endif
+                                                </td>
+                                                <td>
+                                                    <div class="d-flex">
+                                                        <a href="{{ route('subjects.show', $subject) }}" 
+                                                           class="btn btn-sm btn-info mr-2" title="View Details">
+                                                            <i class="las la-eye"></i>
+                                                        </a>
+                                                        <a href="{{ route('subjects.edit', $subject) }}" 
+                                                           class="btn btn-sm btn-primary mr-2" title="Edit">
+                                                            <i class="las la-edit"></i>
+                                                        </a>
+                                                        
+                                                        @if($subject->status === 'active' && $subject->exams_count == 0)
+                                                            <form action="{{ route('subjects.toggle-status', $subject) }}" 
+                                                                  method="POST" class="mr-2">
+                                                                @csrf
+                                                                <button type="submit" class="btn btn-sm btn-warning" 
+                                                                        title="Deactivate">
+                                                                    <i class="las la-toggle-off"></i>
+                                                                </button>
+                                                            </form>
+                                                        @elseif($subject->status === 'inactive')
+                                                            <form action="{{ route('subjects.toggle-status', $subject) }}" 
+                                                                  method="POST" class="mr-2">
+                                                                @csrf
+                                                                <button type="submit" class="btn btn-sm btn-success" 
+                                                                        title="Activate">
+                                                                    <i class="las la-toggle-on"></i>
+                                                                </button>
+                                                            </form>
+                                                        @endif
+                                                        
+                                                        @if($subject->canBeDeleted())
+                                                            <form action="{{ route('subjects.destroy', $subject) }}" 
+                                                                  method="POST">
+                                                                @csrf
+                                                                @method('DELETE')
+                                                                <button type="submit" class="btn btn-sm btn-danger" 
+                                                                        title="Delete"
+                                                                        onclick="return confirm('Are you sure you want to delete this subject?')">
+                                                                    <i class="las la-trash"></i>
+                                                                </button>
+                                                            </form>
+                                                        @else
+                                                            <button class="btn btn-sm btn-danger" title="Delete" disabled>
+                                                                <i class="las la-trash"></i>
+                                                            </button>
+                                                        @endif
+                                                    </div>
+                                                </td>
+                                            </tr>
+                                        @endforeach
+                                    @endif
+                                @endforeach
+                            </tbody>
+                        </table>
+                    </div>
+                @endif
             </div>
         </div>
     </div>

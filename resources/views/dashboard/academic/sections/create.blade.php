@@ -16,12 +16,12 @@
                             <h4 class="card-title">Create New Section</h4>
                             <p class="mb-0">Add a new section to manage parallel classes</p>
                         </div>
-                        <a href="#" class="btn btn-primary">
+                        <a href="{{ route('sections.index') }}" class="btn btn-primary">
                             <i class="las la-arrow-left mr-2"></i> Back to Sections
                         </a>
                     </div>
                     <div class="card-body">
-                        <form action="#" method="POST">
+                        <form action="{{ route('sections.store') }}" method="POST">
                             @csrf
                             
                             <!-- Feature Status Alert -->
@@ -29,6 +29,12 @@
                                 <h6><i class="las la-toggle-on mr-2"></i> Sections Feature: Enabled</h6>
                                 <p class="mb-0">You can disable sections feature from School Settings if not needed.</p>
                             </div>
+
+                            @if(session('error'))
+                                <div class="alert alert-danger mb-4">
+                                    <i class="las la-exclamation-triangle mr-2"></i>{{ session('error') }}
+                                </div>
+                            @endif
 
                             <!-- Section Information -->
                             <div class="row">
@@ -41,34 +47,18 @@
                                 <div class="col-md-6">
                                     <div class="form-group">
                                         <label>Class *</label>
-                                        <select name="class_id" class="form-control" required>
+                                        <select name="class_id" class="form-control @error('class_id') is-invalid @enderror" required>
                                             <option value="">Select Class</option>
-                                            <optgroup label="Pre-Primary">
-                                                <option value="playgroup">Play Group</option>
-                                                <option value="nursery">Nursery</option>
-                                                <option value="kg">Kindergarten (KG)</option>
-                                            </optgroup>
-                                            <optgroup label="Primary (Class 1-5)">
-                                                <option value="class1" selected>Class 1</option>
-                                                <option value="class2">Class 2</option>
-                                                <option value="class3">Class 3</option>
-                                                <option value="class4">Class 4</option>
-                                                <option value="class5">Class 5</option>
-                                            </optgroup>
-                                            <optgroup label="Middle (Class 6-8)">
-                                                <option value="class6">Class 6</option>
-                                                <option value="class7">Class 7</option>
-                                                <option value="class8">Class 8</option>
-                                            </optgroup>
-                                            <optgroup label="Secondary (Class 9-10)">
-                                                <option value="class9">Class 9</option>
-                                                <option value="class10">Class 10</option>
-                                            </optgroup>
-                                            <optgroup label="Cambridge System">
-                                                <option value="olevel1">O Level Year 1</option>
-                                                <option value="olevel2">O Level Year 2</option>
-                                            </optgroup>
+                                            @foreach($classes as $class)
+                                                <option value="{{ $class->id }}" 
+                                                    {{ old('class_id', request('class_id')) == $class->id ? 'selected' : '' }}>
+                                                    {{ $class->name }}
+                                                </option>
+                                            @endforeach
                                         </select>
+                                        @error('class_id')
+                                            <span class="invalid-feedback">{{ $message }}</span>
+                                        @enderror
                                         <small class="form-text text-muted">Select the class for this section</small>
                                     </div>
                                 </div>
@@ -76,8 +66,12 @@
                                 <div class="col-md-6">
                                     <div class="form-group">
                                         <label>Section Name *</label>
-                                        <input type="text" name="name" class="form-control" 
-                                               placeholder="e.g., A, B, Red, Morning" required>
+                                        <input type="text" name="name" class="form-control @error('name') is-invalid @enderror" 
+                                               placeholder="e.g., A, B, Red, Morning" 
+                                               value="{{ old('name') }}" required>
+                                        @error('name')
+                                            <span class="invalid-feedback">{{ $message }}</span>
+                                        @enderror
                                         <small class="form-text text-muted">Unique name for this section within the class</small>
                                     </div>
                                 </div>
@@ -87,8 +81,12 @@
                                         <label>Academic Year</label>
                                         <select name="academic_year_id" class="form-control">
                                             <option value="">All Years</option>
-                                            <option value="2024-2025" selected>2024-2025</option>
-                                            <option value="2023-2024">2023-2024</option>
+                                            @foreach($academicYears as $year)
+                                                <option value="{{ $year->id }}" 
+                                                    {{ old('academic_year_id') == $year->id ? 'selected' : '' }}>
+                                                    {{ $year->name }}
+                                                </option>
+                                            @endforeach
                                         </select>
                                         <small class="form-text text-muted">Optional - Leave empty if section exists across years</small>
                                     </div>
@@ -98,29 +96,37 @@
                                     <div class="form-group">
                                         <label>Section Code</label>
                                         <input type="text" name="code" class="form-control" 
-                                               placeholder="e.g., SEC-A, RED-GRP">
+                                               placeholder="e.g., SEC-A, RED-GRP"
+                                               value="{{ old('code') }}">
                                         <small class="form-text text-muted">Auto-generated if left blank</small>
                                     </div>
                                 </div>
                                 
                                 <div class="col-md-6">
                                     <div class="form-group">
-                                        <label>Capacity</label>
-                                        <input type="number" name="capacity" class="form-control" 
-                                               value="25" min="1" max="50">
+                                        <label>Capacity *</label>
+                                        <input type="number" name="capacity" class="form-control @error('capacity') is-invalid @enderror" 
+                                               value="{{ old('capacity', 25) }}" min="1" max="50" required>
+                                        @error('capacity')
+                                            <span class="invalid-feedback">{{ $message }}</span>
+                                        @enderror
                                         <small class="form-text text-muted">Maximum number of students allowed</small>
                                     </div>
                                 </div>
                                 
                                 <div class="col-md-6">
                                     <div class="form-group">
-                                        <label>Shift</label>
-                                        <select name="shift" class="form-control">
-                                            <option value="morning" selected>Morning Shift</option>
-                                            <option value="evening">Evening Shift</option>
-                                            <option value="day">Full Day</option>
-                                            <option value="weekend">Weekend Classes</option>
+                                        <label>Shift *</label>
+                                        <select name="shift" class="form-control @error('shift') is-invalid @enderror" required>
+                                            <option value="">Select Shift</option>
+                                            <option value="morning" {{ old('shift') == 'morning' ? 'selected' : 'selected' }}>Morning Shift</option>
+                                            <option value="evening" {{ old('shift') == 'evening' ? 'selected' : '' }}>Evening Shift</option>
+                                            <option value="day" {{ old('shift') == 'day' ? 'selected' : '' }}>Full Day</option>
+                                            <option value="weekend" {{ old('shift') == 'weekend' ? 'selected' : '' }}>Weekend Classes</option>
                                         </select>
+                                        @error('shift')
+                                            <span class="invalid-feedback">{{ $message }}</span>
+                                        @enderror
                                     </div>
                                 </div>
                                 
@@ -128,18 +134,23 @@
                                     <div class="form-group">
                                         <label>Room Number</label>
                                         <input type="text" name="room_number" class="form-control" 
-                                               placeholder="e.g., Room 101, Lab 3">
+                                               placeholder="e.g., Room 101, Lab 3"
+                                               value="{{ old('room_number') }}">
                                     </div>
                                 </div>
                                 
                                 <div class="col-md-6">
                                     <div class="form-group">
-                                        <label>Status</label>
-                                        <select name="status" class="form-control">
-                                            <option value="active" selected>Active</option>
-                                            <option value="inactive">Inactive</option>
-                                            <option value="full">Full (No Vacancy)</option>
+                                        <label>Status *</label>
+                                        <select name="status" class="form-control @error('status') is-invalid @enderror" required>
+                                            <option value="">Select Status</option>
+                                            <option value="active" {{ old('status') == 'active' ? 'selected' : 'selected' }}>Active</option>
+                                            <option value="inactive" {{ old('status') == 'inactive' ? 'selected' : '' }}>Inactive</option>
+                                            <option value="full" {{ old('status') == 'full' ? 'selected' : '' }}>Full (No Vacancy)</option>
                                         </select>
+                                        @error('status')
+                                            <span class="invalid-feedback">{{ $message }}</span>
+                                        @enderror
                                     </div>
                                 </div>
                             </div>
@@ -157,11 +168,12 @@
                                         <label>Class Teacher</label>
                                         <select name="class_teacher_id" class="form-control">
                                             <option value="">No Class Teacher Assigned</option>
-                                            <option value="teacher1">Ms. Sarah Smith (Math)</option>
-                                            <option value="teacher2">Mr. John Doe (English)</option>
-                                            <option value="teacher3">Ms. Emma Wilson (Science)</option>
-                                            <option value="teacher4">Mr. Ahmed Khan (Urdu)</option>
-                                            <option value="teacher5">Ms. Fatima Ali (Islamiat)</option>
+                                            @foreach($teachers as $teacher)
+                                                <option value="{{ $teacher->id }}" 
+                                                    {{ old('class_teacher_id') == $teacher->id ? 'selected' : '' }}>
+                                                    {{ $teacher->name }}
+                                                </option>
+                                            @endforeach
                                         </select>
                                         <small class="form-text text-muted">Primary teacher responsible for this section</small>
                                     </div>
@@ -172,8 +184,12 @@
                                         <label>Assistant Teacher</label>
                                         <select name="assistant_teacher_id" class="form-control">
                                             <option value="">No Assistant Teacher</option>
-                                            <option value="teacher6">Ms. Sophia Brown</option>
-                                            <option value="teacher7">Mr. David Miller</option>
+                                            @foreach($teachers as $teacher)
+                                                <option value="{{ $teacher->id }}" 
+                                                    {{ old('assistant_teacher_id') == $teacher->id ? 'selected' : '' }}>
+                                                    {{ $teacher->name }}
+                                                </option>
+                                            @endforeach
                                         </select>
                                     </div>
                                 </div>
@@ -197,14 +213,16 @@
                                 <div class="col-md-6">
                                     <div class="form-group">
                                         <label>Start Time</label>
-                                        <input type="time" name="start_time" class="form-control" value="08:00">
+                                        <input type="time" name="start_time" class="form-control" 
+                                               value="{{ old('start_time', '08:00') }}">
                                     </div>
                                 </div>
                                 
                                 <div class="col-md-6">
                                     <div class="form-group">
                                         <label>End Time</label>
-                                        <input type="time" name="end_time" class="form-control" value="14:00">
+                                        <input type="time" name="end_time" class="form-control" 
+                                               value="{{ old('end_time', '14:00') }}">
                                     </div>
                                 </div>
                                 
@@ -212,42 +230,23 @@
                                     <div class="form-group">
                                         <label>Week Days</label>
                                         <div class="row">
-                                            <div class="col-6 col-md-4 col-lg-2">
-                                                <div class="custom-control custom-checkbox">
-                                                    <input type="checkbox" class="custom-control-input" id="monday" name="weekdays[]" value="monday" checked>
-                                                    <label class="custom-control-label" for="monday">Monday</label>
+                                            @php
+                                                $weekdays = ['monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday'];
+                                                $oldWeekdays = old('weekdays', ['monday', 'tuesday', 'wednesday', 'thursday', 'friday']);
+                                            @endphp
+                                            @foreach($weekdays as $day)
+                                                <div class="col-6 col-md-4 col-lg-2">
+                                                    <div class="custom-control custom-checkbox">
+                                                        <input type="checkbox" class="custom-control-input" 
+                                                               id="{{ $day }}" name="weekdays[]" 
+                                                               value="{{ $day }}"
+                                                               {{ in_array($day, $oldWeekdays) ? 'checked' : '' }}>
+                                                        <label class="custom-control-label" for="{{ $day }}">
+                                                            {{ ucfirst($day) }}
+                                                        </label>
+                                                    </div>
                                                 </div>
-                                            </div>
-                                            <div class="col-6 col-md-4 col-lg-2">
-                                                <div class="custom-control custom-checkbox">
-                                                    <input type="checkbox" class="custom-control-input" id="tuesday" name="weekdays[]" value="tuesday" checked>
-                                                    <label class="custom-control-label" for="tuesday">Tuesday</label>
-                                                </div>
-                                            </div>
-                                            <div class="col-6 col-md-4 col-lg-2">
-                                                <div class="custom-control custom-checkbox">
-                                                    <input type="checkbox" class="custom-control-input" id="wednesday" name="weekdays[]" value="wednesday" checked>
-                                                    <label class="custom-control-label" for="wednesday">Wednesday</label>
-                                                </div>
-                                            </div>
-                                            <div class="col-6 col-md-4 col-lg-2">
-                                                <div class="custom-control custom-checkbox">
-                                                    <input type="checkbox" class="custom-control-input" id="thursday" name="weekdays[]" value="thursday" checked>
-                                                    <label class="custom-control-label" for="thursday">Thursday</label>
-                                                </div>
-                                            </div>
-                                            <div class="col-6 col-md-4 col-lg-2">
-                                                <div class="custom-control custom-checkbox">
-                                                    <input type="checkbox" class="custom-control-input" id="friday" name="weekdays[]" value="friday" checked>
-                                                    <label class="custom-control-label" for="friday">Friday</label>
-                                                </div>
-                                            </div>
-                                            <div class="col-6 col-md-4 col-lg-2">
-                                                <div class="custom-control custom-checkbox">
-                                                    <input type="checkbox" class="custom-control-input" id="saturday" name="weekdays[]" value="saturday">
-                                                    <label class="custom-control-label" for="saturday">Saturday</label>
-                                                </div>
-                                            </div>
+                                            @endforeach
                                         </div>
                                     </div>
                                 </div>
@@ -265,14 +264,15 @@
                                     <div class="form-group">
                                         <label>Description</label>
                                         <textarea name="description" class="form-control" rows="3" 
-                                                  placeholder="Add any notes about this section"></textarea>
+                                                  placeholder="Add any notes about this section">{{ old('description') }}</textarea>
                                     </div>
                                 </div>
                                 
                                 <div class="col-md-12">
                                     <div class="custom-control custom-checkbox">
                                         <input type="checkbox" class="custom-control-input" 
-                                               id="enable_attendance" name="enable_attendance" checked>
+                                               id="enable_attendance" name="enable_attendance" 
+                                               {{ old('enable_attendance', true) ? 'checked' : '' }}>
                                         <label class="custom-control-label" for="enable_attendance">
                                             Enable attendance tracking for this section
                                         </label>
@@ -282,7 +282,8 @@
                                 <div class="col-md-12 mt-2">
                                     <div class="custom-control custom-checkbox">
                                         <input type="checkbox" class="custom-control-input" 
-                                               id="enable_fee_collection" name="enable_fee_collection" checked>
+                                               id="enable_fee_collection" name="enable_fee_collection" 
+                                               {{ old('enable_fee_collection', true) ? 'checked' : '' }}>
                                         <label class="custom-control-label" for="enable_fee_collection">
                                             Enable fee collection for this section
                                         </label>
@@ -329,23 +330,27 @@
     <!-- Auto-generate Section Code -->
     <script>
         $(document).ready(function() {
-            // Auto-generate section code
-            $('input[name="name"]').on('blur', function() {
-                var sectionName = $(this).val();
-                var classSelect = $('select[name="class_id"]');
-                var selectedClass = classSelect.find('option:selected').text();
+            // Function to generate section code
+            function generateSectionCode() {
+                var sectionName = $('input[name="name"]').val();
+                var classId = $('select[name="class_id"]').val();
+                var classText = $('select[name="class_id"] option:selected').text();
                 var codeInput = $('input[name="code"]');
                 
-                if (sectionName && selectedClass && !codeInput.val()) {
+                if (sectionName && classId && !codeInput.val()) {
                     // Extract class code (first word or abbreviation)
-                    var classCode = selectedClass.split(' ')[0];
+                    var classCode = classText.split(' ')[0];
                     if (classCode.length > 3) classCode = classCode.substring(0, 3);
                     
                     // Generate section code
                     var sectionCode = classCode.toUpperCase() + '-' + sectionName.toUpperCase();
                     codeInput.val(sectionCode);
                 }
-            });
+            }
+            
+            // Auto-generate section code
+            $('input[name="name"]').on('blur', generateSectionCode);
+            $('select[name="class_id"]').on('change', generateSectionCode);
             
             // Validate time
             $('input[name="end_time"]').on('change', function() {
@@ -355,6 +360,21 @@
                 if (startTime && endTime && endTime <= startTime) {
                     alert('End time must be after start time');
                     $(this).val('');
+                }
+            });
+            
+            // Auto-select capacity based on shift
+            $('select[name="shift"]').on('change', function() {
+                var capacityInput = $('input[name="capacity"]');
+                var shift = $(this).val();
+                
+                if (!capacityInput.val()) {
+                    var defaultCapacity = 25;
+                    if (shift === 'evening') defaultCapacity = 30;
+                    if (shift === 'day') defaultCapacity = 20;
+                    if (shift === 'weekend') defaultCapacity = 15;
+                    
+                    capacityInput.val(defaultCapacity);
                 }
             });
         });

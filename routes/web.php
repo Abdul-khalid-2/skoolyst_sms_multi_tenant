@@ -9,6 +9,8 @@ use Illuminate\Support\Facades\Route;
 
 use App\Http\Controllers\SchoolController;
 use App\Http\Controllers\SchoolSettingsController;
+use App\Http\Controllers\SectionSetupController;
+use App\Http\Controllers\SubjectSetupController;
 
 Route::get('/', function () {
     return view('welcome');
@@ -120,47 +122,23 @@ Route::middleware(['auth'])->group(function () {
     Route::resource('classes', ClassesSetupController::class);
 
 
+    // ============================================
+    // Section SETUP MANAGEMENT MODULE ROUTES 
+    // ============================================
+    Route::post('/sections/{section}/toggle-status', [SectionSetupController::class, 'toggleStatus'])
+        ->name('sections.toggle-status');
+    Route::get('/sections/class/{classId}', [SectionSetupController::class, 'getSectionsByClass'])
+        ->name('sections.by-class');
+    Route::resource('sections', SectionSetupController::class);
 
 
-    // Sections
-    Route::get('/sections', function () {
-        return view('dashboard.academic.sections.index');
-    })->name('sections.index');
+    // ============================================
+    // SUBJECT SETUP MANAGEMENT MODULE ROUTES 
+    // ============================================
+    Route::post('/subjects/{subject}/toggle-status', [SubjectSetupController::class, 'toggleStatus'])
+        ->name('subjects.toggle-status');
+    Route::resource('subjects', SubjectSetupController::class);
 
-    Route::get('/sections/create', function () {
-        return view('dashboard.academic.sections.create');
-    })->name('sections.create');
-
-    // Subjects
-    Route::get('/subjects', function () {
-        return view('dashboard.academic.subjects.index');
-    })->name('subjects.index');
-
-    Route::get('/subjects/create', function () {
-        return view('dashboard.academic.subjects.create');
-    })->name('subjects.create');
-
-    // Add dummy form submission routes for testing
-    // Route::post('/academic-years', function () {
-    //     return redirect()->route('academic-years.index')
-    //         ->with('success', 'Academic year created successfully!');
-    // })->name('academic-years.store');
-
-
-    // Route::post('/classes', function () {
-    //     return redirect()->route('classes.index')
-    //         ->with('success', 'Class created successfully!');
-    // })->name('classes.store');
-
-    Route::post('/sections', function () {
-        return redirect()->route('sections.index')
-            ->with('success', 'Section created successfully!');
-    })->name('sections.store');
-
-    Route::post('/subjects', function () {
-        return redirect()->route('subjects.index')
-            ->with('success', 'Subject created successfully!');
-    })->name('subjects.store');
 
 
 
