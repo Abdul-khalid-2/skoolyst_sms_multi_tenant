@@ -9,4 +9,5 @@ class Clazz extends Model
 {
     /** @use HasFactory<\Database\Factories\ClazzFactory> */
     use HasFactory;
+    protected $table = 'classes';
 }

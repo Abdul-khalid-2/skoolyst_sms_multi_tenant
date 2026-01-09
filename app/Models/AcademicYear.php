@@ -5,6 +5,8 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 class AcademicYear extends Model
 {
@@ -13,9 +15,12 @@ class AcademicYear extends Model
     protected $fillable = [
         'school_id',
         'name',
+        'code', // Add this
         'start_date',
         'end_date',
-        'is_active'
+        'is_active',
+        'status', // Add this
+        'description' // Add this
     ];
 
     protected $casts = [
@@ -24,26 +29,49 @@ class AcademicYear extends Model
         'is_active' => 'boolean',
     ];
 
-    public function school()
+    public function school(): BelongsTo
     {
-        // return $this->belongsTo(School::class);
+        return $this->belongsTo(School::class);
     }
 
-    public function students()
+    public function students(): HasMany
     {
-        // return $this->hasMany(Student::class);
+        return $this->hasMany(Student::class);
     }
 
-    public function exams()
+    public function classes(): HasMany
     {
-        // return $this->hasMany(Exam::class);
+        return $this->hasMany(Clazz::class);
+    }
+
+    public function exams(): HasMany
+    {
+        return $this->hasMany(Exam::class);
+    }
+
+    public function feeStructures(): HasMany
+    {
+        return $this->hasMany(FeeStructure::class);
     }
 
     // Get active academic year
-    public static function getActive($schoolId)
+    public static function getActive($schoolId = null)
     {
+        if (!$schoolId) {
+            // If school ID not provided, try to get from authenticated user
+            $schoolId = auth()->check() ? auth()->user()->school_id : null;
+        }
+
         return self::where('school_id', $schoolId)
             ->where('is_active', true)
+            ->where('status', 'active')
             ->first();
+    }
+
+    // Scope for current school
+    public function scopeCurrentSchool($query)
+    {
+        $schoolId = auth()->check() ? auth()->user()->school_id : null;
+        return $query->where('school_id', $schoolId);
     }
 }

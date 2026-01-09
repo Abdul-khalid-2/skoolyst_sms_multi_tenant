@@ -1,4 +1,4 @@
-<!-- resources/views/dashboard/academic/academic-years/create.blade.php -->
+<!-- resources/views/dashboard/academic/academic-years/edit.blade.php -->
 <x-app-layout>
     @push('css')
     <link rel="stylesheet" href="{{ asset('backend/assets/css/backend-plugin.min.css') }}">
@@ -14,16 +14,17 @@
                 <div class="card">
                     <div class="card-header d-flex justify-content-between">
                         <div class="header-title">
-                            <h4 class="card-title">Create Academic Year</h4>
-                            <p class="mb-0">Add a new academic year for organizing data</p>
+                            <h4 class="card-title">Edit Academic Year</h4>
+                            <p class="mb-0">Update academic year information</p>
                         </div>
                         <a href="{{ route('academic-years.index') }}" class="btn btn-primary">
                             <i class="las la-arrow-left mr-2"></i> Back to Academic Years
                         </a>
                     </div>
                     <div class="card-body">
-                        <form action="{{ route('academic-years.store') }}" method="POST">
+                        <form action="{{ route('academic-years.update', $academicYear) }}" method="POST">
                             @csrf
+                            @method('PUT')
                             
                             <!-- Basic Information -->
                             <div class="row">
@@ -38,11 +39,10 @@
                                         <label>Year Name *</label>
                                         <input type="text" name="name" class="form-control @error('name') is-invalid @enderror" 
                                                placeholder="e.g., 2024-2025" required
-                                               value="{{ old('name') }}">
+                                               value="{{ old('name', $academicYear->name) }}">
                                         @error('name')
                                             <span class="invalid-feedback">{{ $message }}</span>
                                         @enderror
-                                        <small class="form-text text-muted">Format: YYYY-YYYY (e.g., 2024-2025)</small>
                                     </div>
                                 </div>
                                 
@@ -51,8 +51,7 @@
                                         <label>Short Code</label>
                                         <input type="text" name="code" class="form-control" 
                                                placeholder="e.g., AY24-25"
-                                               value="{{ old('code') }}">
-                                        <small class="form-text text-muted">Optional short code for reference</small>
+                                               value="{{ old('code', $academicYear->code) }}">
                                     </div>
                                 </div>
                                 
@@ -60,7 +59,7 @@
                                     <div class="form-group">
                                         <label>Start Date *</label>
                                         <input type="date" name="start_date" class="form-control @error('start_date') is-invalid @enderror" 
-                                               required value="{{ old('start_date') }}">
+                                               required value="{{ old('start_date', $academicYear->start_date->format('Y-m-d')) }}">
                                         @error('start_date')
                                             <span class="invalid-feedback">{{ $message }}</span>
                                         @enderror
@@ -71,7 +70,7 @@
                                     <div class="form-group">
                                         <label>End Date *</label>
                                         <input type="date" name="end_date" class="form-control @error('end_date') is-invalid @enderror" 
-                                               required value="{{ old('end_date') }}">
+                                               required value="{{ old('end_date', $academicYear->end_date->format('Y-m-d')) }}">
                                         @error('end_date')
                                             <span class="invalid-feedback">{{ $message }}</span>
                                         @enderror
@@ -91,15 +90,18 @@
                                     <div class="form-group">
                                         <label>Status</label>
                                         <select name="status" class="form-control @error('status') is-invalid @enderror" required>
-                                            <option value="">Select Status</option>
-                                            <option value="active" {{ old('status') == 'active' ? 'selected' : '' }}>Active</option>
-                                            <option value="inactive" {{ old('status') == 'inactive' ? 'selected' : '' }}>Inactive</option>
-                                            <option value="archived" {{ old('status') == 'archived' ? 'selected' : '' }}>Archived</option>
+                                            <option value="active" {{ old('status', $academicYear->status) == 'active' ? 'selected' : '' }}>Active</option>
+                                            <option value="inactive" {{ old('status', $academicYear->status) == 'inactive' ? 'selected' : '' }}>Inactive</option>
+                                            <option value="archived" {{ old('status', $academicYear->status) == 'archived' ? 'selected' : '' }}>Archived</option>
                                         </select>
                                         @error('status')
                                             <span class="invalid-feedback">{{ $message }}</span>
                                         @enderror
-                                        <small class="form-text text-muted">Only one year can be active at a time</small>
+                                        <small class="form-text text-muted">
+                                            @if($academicYear->is_active)
+                                                <span class="text-warning">This is currently active. Changing status will affect system operations.</span>
+                                            @endif
+                                        </small>
                                     </div>
                                 </div>
                             </div>
@@ -108,28 +110,37 @@
                             <div class="row mt-4">
                                 <div class="col-md-12">
                                     <h5 class="mb-3 text-primary">
-                                        <i class="las la-file-alt mr-2"></i> Additional Information (Optional)
+                                        <i class="las la-file-alt mr-2"></i> Additional Information
                                     </h5>
                                 </div>
                                 
                                 <div class="col-md-12">
                                     <div class="form-group">
                                         <label>Description</label>
-                                        <textarea name="description" class="form-control" rows="3" 
-                                                  placeholder="Add any notes or description about this academic year">{{ old('description') }}</textarea>
+                                        <textarea name="description" class="form-control" rows="3">{{ old('description', $academicYear->description) }}</textarea>
                                     </div>
                                 </div>
                             </div>
                             
-                            <!-- Important Notice -->
+                            <!-- Stats -->
                             <div class="row mt-4">
                                 <div class="col-md-12">
-                                    <div class="alert alert-warning">
-                                        <h6><i class="las la-exclamation-triangle mr-2"></i> Important Notice</h6>
-                                        <p class="mb-0">
-                                            Once created, you cannot delete an academic year if it contains student data, 
-                                            fee records, or exam results. You can only archive it to make it read-only.
-                                        </p>
+                                    <div class="alert alert-info">
+                                        <h6><i class="las la-info-circle mr-2"></i> Year Statistics</h6>
+                                        <div class="row">
+                                            <div class="col-md-3">
+                                                <small>Students: {{ $academicYear->students_count ?? 0 }}</small>
+                                            </div>
+                                            <div class="col-md-3">
+                                                <small>Classes: {{ $academicYear->classes_count ?? 0 }}</small>
+                                            </div>
+                                            <div class="col-md-3">
+                                                <small>Created: {{ $academicYear->created_at->format('d M Y') }}</small>
+                                            </div>
+                                            <div class="col-md-3">
+                                                <small>Updated: {{ $academicYear->updated_at->format('d M Y') }}</small>
+                                            </div>
+                                        </div>
                                     </div>
                                 </div>
                             </div>
@@ -137,11 +148,11 @@
                             <div class="row mt-4">
                                 <div class="col-md-12">
                                     <button type="submit" class="btn btn-primary mr-2">
-                                        <i class="las la-save mr-2"></i> Create Academic Year
+                                        <i class="las la-save mr-2"></i> Update Academic Year
                                     </button>
-                                    <button type="reset" class="btn btn-danger">
-                                        <i class="las la-redo mr-2"></i> Reset Form
-                                    </button>
+                                    <a href="{{ route('academic-years.index') }}" class="btn btn-secondary">
+                                        <i class="las la-times mr-2"></i> Cancel
+                                    </a>
                                 </div>
                             </div>
                         </form>
@@ -158,17 +169,6 @@
     <!-- Date Validation -->
     <script>
         $(document).ready(function() {
-            // Set default dates
-            var currentYear = new Date().getFullYear();
-            var nextYear = currentYear + 1;
-            
-            // Set default start date (April 1st of current year)
-            $('input[name="start_date"]').val(currentYear + '-04-01');
-            $('input[name="end_date"]').val(nextYear + '-03-31');
-            
-            // Set default year name
-            $('input[name="name"]').val(currentYear + '-' + nextYear);
-            
             // Validate end date is after start date
             $('input[name="end_date"]').on('change', function() {
                 var startDate = new Date($('input[name="start_date"]').val());

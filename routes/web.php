@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\AcademicYearController;
 use App\Http\Controllers\ModuleController;
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\SettingController;
@@ -91,13 +92,18 @@ Route::middleware(['auth'])->group(function () {
 
 
     // Academic Years
-    Route::get('/academic-years', function () {
-        return view('dashboard.academic.academic-years.index');
-    })->name('academic-years.index');
+    Route::post('/academic-years/{academicYear}/activate', [AcademicYearController::class, 'activate'])
+        ->name('academic-years.activate');
+    Route::post('/academic-years/{academicYear}/archive', [AcademicYearController::class, 'archive'])
+        ->name('academic-years.archive');
+    Route::resource('academic-years', AcademicYearController::class);
 
-    Route::get('/academic-years/create', function () {
-        return view('dashboard.academic.academic-years.create');
-    })->name('academic-years.create');
+
+
+
+
+
+
 
     // Classes
     Route::get('/classes', function () {
@@ -127,10 +133,10 @@ Route::middleware(['auth'])->group(function () {
     })->name('subjects.create');
 
     // Add dummy form submission routes for testing
-    Route::post('/academic-years', function () {
-        return redirect()->route('academic-years.index')
-            ->with('success', 'Academic year created successfully!');
-    })->name('academic-years.store');
+    // Route::post('/academic-years', function () {
+    //     return redirect()->route('academic-years.index')
+    //         ->with('success', 'Academic year created successfully!');
+    // })->name('academic-years.store');
 
 
     Route::post('/classes', function () {
