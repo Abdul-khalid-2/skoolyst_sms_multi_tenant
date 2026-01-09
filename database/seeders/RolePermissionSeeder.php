@@ -104,11 +104,11 @@ class RolePermissionSeeder extends Seeder
         // ====================
         // 2. CREATE GLOBAL ROLES (school_id = null)
         // ====================
-        $superAdminRole = Role::create([
-            'name' => 'Super Admin',
-            'guard_name' => 'web',
-        ]);
-        $superAdminRole->givePermissionTo(Permission::all());
+        // $superAdminRole = Role::create([
+        //     'name' => 'Super Admin',
+        //     'guard_name' => 'web',
+        // ]);
+        // $superAdminRole->givePermissionTo(Permission::all());
 
         $this->command->info('✅ Role and Permission seeded successfully!');
     }

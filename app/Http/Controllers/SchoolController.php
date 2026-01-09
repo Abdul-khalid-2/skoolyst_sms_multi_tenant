@@ -122,18 +122,10 @@ class SchoolController extends Controller
                 ]);
             }
 
-            // Create school-specific roles if they don't exist
-            $this->createSchoolRoles($school->id);
-
-            // Assign school admin role to the user
-            $schoolAdminRole = Role::where('name', "school_{$school->id}_admin")->first();
-            if ($schoolAdminRole) {
-                $user->assignRole($schoolAdminRole);
-            }
-
             // Remove any existing roles (clean slate)
-            $user->roles()->sync([]);
-            $user->assignRole($schoolAdminRole);
+            $user->assignRole('admin');
+
+
 
             return redirect()->route('schools.index')
                 ->with('success', 'School created successfully! School admin user has been created with default password: password123');
@@ -144,133 +136,6 @@ class SchoolController extends Controller
         }
     }
 
-    /**
-     * Create school-specific roles
-     */
-    private function createSchoolRoles(int $schoolId): void
-    {
-        $schoolPrefix = "school_{$schoolId}_";
-
-        // Check if roles already exist
-        $existingAdminRole = Role::where('name', $schoolPrefix . 'admin')->first();
-        if ($existingAdminRole) {
-            return; // Roles already exist, skip creation
-        }
-
-        // School Admin Role
-        $schoolAdminRole = Role::create([
-            'name' => $schoolPrefix . 'admin',
-            'guard_name' => 'web',
-        ]);
-
-        $schoolAdminPermissions = [
-            'view_dashboard',
-            'view_users',
-            'create_users',
-            'edit_users',
-            'view_roles',
-            'assign_roles',
-            'view_branches',
-            'create_branches',
-            'edit_branches',
-            'view_students',
-            'create_students',
-            'edit_students',
-            'view_teachers',
-            'create_teachers',
-            'edit_teachers',
-            'view_attendance',
-            'mark_attendance',
-            'view_fees',
-            'create_fees',
-            'collect_fees',
-            'view_exams',
-            'create_exams',
-            'publish_results',
-            'view_classes',
-            'create_classes',
-            'edit_classes',
-            'view_subjects',
-            'create_subjects',
-            'edit_subjects',
-            'view_reports',
-            'generate_reports',
-            'manage_settings',
-        ];
-        $schoolAdminRole->givePermissionTo($schoolAdminPermissions);
-
-        // Teacher Role
-        $teacherRole = Role::create([
-            'name' => $schoolPrefix . 'teacher',
-            'guard_name' => 'web',
-        ]);
-        $teacherPermissions = [
-            'view_dashboard',
-            'view_students',
-            'view_attendance',
-            'mark_attendance',
-            'view_exams',
-            'view_classes',
-            'view_subjects',
-        ];
-        $teacherRole->givePermissionTo($teacherPermissions);
-
-        // Student Role
-        $studentRole = Role::create([
-            'name' => $schoolPrefix . 'student',
-            'guard_name' => 'web',
-        ]);
-        $studentPermissions = [
-            'view_dashboard',
-            'view_attendance',
-            'view_fees',
-            'view_exams',
-        ];
-        $studentRole->givePermissionTo($studentPermissions);
-
-        // Parent Role
-        $parentRole = Role::create([
-            'name' => $schoolPrefix . 'parent',
-            'guard_name' => 'web',
-        ]);
-        $parentPermissions = [
-            'view_dashboard',
-            'view_attendance',
-            'view_fees',
-            'view_exams',
-        ];
-        $parentRole->givePermissionTo($parentPermissions);
-
-        // Accountant Role
-        $accountantRole = Role::create([
-            'name' => $schoolPrefix . 'accountant',
-            'guard_name' => 'web',
-        ]);
-        $accountantPermissions = [
-            'view_dashboard',
-            'view_fees',
-            'create_fees',
-            'collect_fees',
-            'view_reports',
-            'generate_reports',
-        ];
-        $accountantRole->givePermissionTo($accountantPermissions);
-
-        // Receptionist Role
-        $receptionistRole = Role::create([
-            'name' => $schoolPrefix . 'receptionist',
-            'guard_name' => 'web',
-        ]);
-        $receptionistPermissions = [
-            'view_dashboard',
-            'view_students',
-            'create_students',
-            'view_attendance',
-            'view_fees',
-            'collect_fees',
-        ];
-        $receptionistRole->givePermissionTo($receptionistPermissions);
-    }
 
 
     /**
