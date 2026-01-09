@@ -49,7 +49,6 @@ class DefaultSettingsSeeder extends Seeder
                 'show_breadcrumb' => '1',
                 'animations' => '1',
             ],
-            // ... Add all other categories
         ];
 
         foreach ($schools as $school) {
@@ -58,7 +57,7 @@ class DefaultSettingsSeeder extends Seeder
                     Setting::updateOrCreate(
                         [
                             'school_id' => $school->id,
-                            'key' => $category . '.' . $key
+                            'key' => $category . '_' . $key
                         ],
                         [
                             'value' => $value
