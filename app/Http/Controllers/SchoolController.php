@@ -10,7 +10,6 @@ use App\Http\Requests\UpdateSchoolRequest;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
-use Spatie\Permission\Models\Role;
 use Illuminate\Support\Facades\Hash;
 
 class SchoolController extends Controller
@@ -21,6 +20,10 @@ class SchoolController extends Controller
     public function index(Request $request)
     {
         $query = School::withCount(['branches', 'users']);
+
+        if (auth()->user()->hasRole('admin')) {
+            $query->where('id', auth()->user()->school_id);
+        }
 
         // Search filter
         if ($request->has('search') && !empty($request->search)) {
@@ -204,52 +207,6 @@ class SchoolController extends Controller
             }
 
             $school->update($validatedData);
-
-            // Handle admin account update/creation
-            $adminUser = $school->users()->whereHas('roles', function ($q) use ($school) {
-                $q->where('name', 'school_' . $school->id . '_admin');
-            })->first();
-
-            if ($adminUser) {
-                // Update existing admin
-                $adminData = [
-                    'name' => $request->input('admin_name'),
-                    'email' => $request->input('admin_email'),
-                    'status' => $request->input('admin_status', $adminUser->status),
-                    'phone' => $request->input('admin_phone', $adminUser->phone),
-                    'address' => $school->address,
-                ];
-
-                // Update password if provided
-                if ($request->filled('admin_password')) {
-                    $adminData['password'] = Hash::make($request->input('admin_password'));
-                }
-
-                $adminUser->update($adminData);
-            } else {
-                // Create new admin if doesn't exist
-                $branch = $school->branches()->first();
-
-                $newAdmin = User::create([
-                    'name' => $request->input('admin_name'),
-                    'email' => $request->input('admin_email'),
-                    'password' => Hash::make($request->input('admin_password')),
-                    'school_id' => $school->id,
-                    'branch_id' => $branch ? $branch->id : null,
-                    'phone' => $request->input('admin_phone', $school->phone),
-                    'address' => $school->address,
-                    'status' => 'active'
-                ]);
-
-                // Create roles if they don't exist
-                $this->createSchoolRoles($school->id);
-
-                // Assign admin role
-                $schoolAdminRole = Role::where('name', "school_{$school->id}_admin")->first();
-                if ($schoolAdminRole) {
-                    $newAdmin->assignRole($schoolAdminRole);
-                }
-            }
 
             return redirect()->route('schools.index')
                 ->with('success', 'School and admin account updated successfully!');

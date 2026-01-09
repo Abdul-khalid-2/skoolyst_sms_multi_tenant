@@ -52,6 +52,12 @@ class ModuleController extends Controller
 
             $schoolModule->is_active = $request->action == 'enable';
 
+            $settings = $schoolModule->settings ?? [];
+
+            $settings['is_active'] = $request->action === 'enable' ? 1 : 0;
+
+            $schoolModule->settings = $settings;
+
             if ($request->action == 'enable') {
                 $schoolModule->activated_at = now();
                 $schoolModule->deactivated_at = null;
