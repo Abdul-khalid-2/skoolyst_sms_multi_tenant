@@ -54,6 +54,29 @@ class AcademicYear extends Model
         return $this->hasMany(FeeStructure::class);
     }
 
+    // ========== SCOPES ==========
+
+    // Scope for active academic years
+    public function scopeActive($query)
+    {
+        return $query->where('is_active', true)
+            ->where('status', 'active');
+    }
+
+    // Scope for inactive academic years
+    public function scopeInactive($query)
+    {
+        return $query->where('is_active', false)
+            ->orWhere('status', '!=', 'active');
+    }
+
+    // Scope for archived academic years
+    public function scopeArchived($query)
+    {
+        return $query->where('status', 'archived');
+    }
+
+
     // Get active academic year
     public static function getActive($schoolId = null)
     {

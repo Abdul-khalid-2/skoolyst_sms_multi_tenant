@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\AcademicYearController;
+use App\Http\Controllers\ClassesSetupController;
 use App\Http\Controllers\ModuleController;
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\SettingController;
@@ -26,6 +27,11 @@ Route::middleware('auth')->group(function () {
 
 // Module View Routes - Return simple views without controllers
 Route::middleware(['auth'])->group(function () {
+
+
+    // ============================================
+    // SCHOOL MANAGEMENT MODULE ROUTES 
+    // ============================================
 
     Route::prefix('schools')->group(function () {
         Route::get('/', [SchoolController::class, 'index'])->name('schools.index');
@@ -91,7 +97,9 @@ Route::middleware(['auth'])->group(function () {
 
 
 
-    // Academic Years
+    // ============================================
+    // ACADEMIC YEAR MANAGEMENT MODULE ROUTES 
+    // ============================================
     Route::post('/academic-years/{academicYear}/activate', [AcademicYearController::class, 'activate'])
         ->name('academic-years.activate');
     Route::post('/academic-years/{academicYear}/archive', [AcademicYearController::class, 'archive'])
@@ -104,15 +112,15 @@ Route::middleware(['auth'])->group(function () {
 
 
 
+    // ============================================
+    // CLASS SETUP MANAGEMENT MODULE ROUTES 
+    // ============================================
+    Route::post('/classes/{class}/toggle-status', [ClassesSetupController::class, 'toggleStatus'])
+        ->name('classes.toggle-status');
+    Route::resource('classes', ClassesSetupController::class);
 
-    // Classes
-    Route::get('/classes', function () {
-        return view('dashboard.academic.classes.index');
-    })->name('classes.index');
 
-    Route::get('/classes/create', function () {
-        return view('dashboard.academic.classes.create');
-    })->name('classes.create');
+
 
     // Sections
     Route::get('/sections', function () {
@@ -139,10 +147,10 @@ Route::middleware(['auth'])->group(function () {
     // })->name('academic-years.store');
 
 
-    Route::post('/classes', function () {
-        return redirect()->route('classes.index')
-            ->with('success', 'Class created successfully!');
-    })->name('classes.store');
+    // Route::post('/classes', function () {
+    //     return redirect()->route('classes.index')
+    //         ->with('success', 'Class created successfully!');
+    // })->name('classes.store');
 
     Route::post('/sections', function () {
         return redirect()->route('sections.index')
