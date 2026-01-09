@@ -128,9 +128,7 @@
                                 </div>
                                 
                                 @php
-                                    $adminUser = $school->users()->whereHas('roles', function($q) use ($school) {
-                                        $q->where('name', 'school_' . $school->id . '_admin');
-                                    })->first();
+                                    $adminUser = $school->users()->role('admin')->first();
                                 @endphp
                                 
                                 @if($adminUser)
