@@ -70,9 +70,90 @@ class Section extends Model
         return $this->belongsTo(User::class, 'assistant_teacher_id');
     }
 
-    // Get students count
+    // ========== SCOPES ==========
+
+    public function scopeActive($query)
+    {
+        return $query->where('status', 'active');
+    }
+
+    public function scopeBySchool($query, $schoolId = null)
+    {
+        $schoolId = $schoolId ?? auth()->user()->school_id;
+        return $query->where('school_id', $schoolId);
+    }
+
+    public function scopeByClass($query, $classId)
+    {
+        return $query->where('class_id', $classId);
+    }
+
+    public function scopeByAcademicYear($query, $academicYearId = null)
+    {
+        if ($academicYearId) {
+            return $query->where('academic_year_id', $academicYearId);
+        }
+        return $query;
+    }
+
+    public function scopeWithCapacity($query)
+    {
+        return $query->whereRaw('(SELECT COUNT(*) FROM students WHERE section_id = sections.id) < capacity');
+    }
+
+    // ========== ACCESSORS ==========
+
     public function getStudentsCountAttribute()
     {
         return $this->students()->count();
+    }
+
+    public function getAvailableSeatsAttribute()
+    {
+        return max(0, $this->capacity - $this->students_count);
+    }
+
+    public function getIsFullAttribute()
+    {
+        return $this->students_count >= $this->capacity;
+    }
+
+    public function getOccupancyPercentageAttribute()
+    {
+        if ($this->capacity == 0) {
+            return 0;
+        }
+        return round(($this->students_count / $this->capacity) * 100, 2);
+    }
+
+    public function getWeekdaysListAttribute()
+    {
+        if (empty($this->weekdays)) {
+            return 'Not Set';
+        }
+
+        $daysMap = [
+            'monday' => 'Mon',
+            'tuesday' => 'Tue',
+            'wednesday' => 'Wed',
+            'thursday' => 'Thu',
+            'friday' => 'Fri',
+            'saturday' => 'Sat',
+            'sunday' => 'Sun'
+        ];
+
+        $days = array_map(function ($day) use ($daysMap) {
+            return $daysMap[$day] ?? ucfirst($day);
+        }, $this->weekdays);
+
+        return implode(', ', $days);
+    }
+
+    public function getDurationAttribute()
+    {
+        if ($this->start_time && $this->end_time) {
+            return $this->start_time->format('h:i A') . ' - ' . $this->end_time->format('h:i A');
+        }
+        return 'Not Set';
     }
 }

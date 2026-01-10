@@ -97,4 +97,30 @@ class AcademicYear extends Model
         $schoolId = auth()->check() ? auth()->user()->school_id : null;
         return $query->where('school_id', $schoolId);
     }
+
+    public function scopeBySchool($query, $schoolId = null)
+    {
+        $schoolId = $schoolId ?? auth()->user()->school_id;
+        return $query->where('school_id', $schoolId);
+    }
+
+    public function scopeCurrent($query)
+    {
+        return $query->where('is_active', true)
+            ->where('start_date', '<=', now())
+            ->where('end_date', '>=', now());
+    }
+
+    // Accessors
+    public function getIsCurrentAttribute()
+    {
+        return $this->is_active &&
+            $this->start_date <= now() &&
+            $this->end_date >= now();
+    }
+
+    public function getDurationAttribute()
+    {
+        return $this->start_date->format('M Y') . ' - ' . $this->end_date->format('M Y');
+    }
 }

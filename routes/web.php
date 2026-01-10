@@ -10,6 +10,7 @@ use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\SchoolController;
 use App\Http\Controllers\SchoolSettingsController;
 use App\Http\Controllers\SectionSetupController;
+use App\Http\Controllers\StudentController;
 use App\Http\Controllers\SubjectSetupController;
 
 Route::get('/', function () {
@@ -150,33 +151,25 @@ Route::middleware(['auth'])->group(function () {
     // STUDENT MANAGEMENT MODULE ROUTES (STATIC)
     // ============================================
 
-    // Students
-    Route::get('/students', function () {
-        return view('dashboard.students.index');
-    })->name('students.index');
+    Route::prefix('students')->name('students.')->group(function () {
+        Route::get('/', [StudentController::class, 'index'])->name('index');
+        Route::get('/create', [StudentController::class, 'create'])->name('create');
+        Route::post('/', [StudentController::class, 'store'])->name('store');
+        Route::get('/{student}', [StudentController::class, 'show'])->name('show');
+        Route::get('/{student}/edit', [StudentController::class, 'edit'])->name('edit');
+        Route::put('/{student}', [StudentController::class, 'update'])->name('update');
+        Route::delete('/{student}', [StudentController::class, 'destroy'])->name('destroy');
 
-    Route::get('/students/create', function () {
-        return view('dashboard.students.create');
-    })->name('students.create');
+        // Additional routes
+        Route::post('/{student}/promote', [StudentController::class, 'promote'])->name('promote');
+        Route::post('/export', [StudentController::class, 'export'])->name('export');
+        Route::post('/import', [StudentController::class, 'import'])->name('import');
+        Route::get('/{student}/id-card', [StudentController::class, 'idCard'])->name('id-card');
+        Route::get('/{student}/fee-history', [StudentController::class, 'feeHistory'])->name('fee-history');
+        Route::get('/{student}/attendance', [StudentController::class, 'attendance'])->name('attendance');
+    });
+    Route::get('/get-sections-by-class', [StudentController::class, 'getSectionsByClass'])->name('get.sections.by.class');
 
-    Route::get('/students/{id}', function ($id) {
-        return view('dashboard.students.show');
-    })->name('students.show');
-
-    Route::get('/students/{id}/edit', function ($id) {
-        return view('dashboard.students.edit');
-    })->name('students.edit');
-
-    // Dummy form submission routes
-    Route::post('/students', function () {
-        return redirect()->route('students.index')
-            ->with('success', 'Student registered successfully!');
-    })->name('students.store');
-
-    Route::put('/students/{id}', function ($id) {
-        return redirect()->route('students.show', $id)
-            ->with('success', 'Student updated successfully!');
-    })->name('students.update');
 
 
 
